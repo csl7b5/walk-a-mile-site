@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Walk a Mile | Yale Anesthesiology</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2300356B'/%3E%3Ctext x='16' y='22' text-anchor='middle' fill='%23C9A84C' font-size='18' font-family='Georgia,serif' font-weight='bold'%3EY%3C/text%3E%3C/svg%3E" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   DESIGN TOKENS
+   IT NOTE: Replace CSS variables with your intranet theme tokens
+   ============================================================ */
+:root {
+  --navy:#00356B; --navy-deep:#001628; --navy-mid:#004C97; --navy-light:#E8F0FB;
+  --gold:#C9A84C; --gold-light:#E8C882; --gold-pale:rgba(201,168,76,.1);
+  --cream:#F9F6F0; --white:#FFFFFF;
+  --green:#2E7D32; --green-light:#E8F5E9;
+  --red:#C62828; --red-light:#FFEBEE;
+  --amber:#F57F17; --amber-light:#FFF8E1;
+  --text-dark:#0f1e30; --text-mid:#3d4a5c; --text-muted:#8a99aa;
+  --border:rgba(0,53,107,.11); --border-gold:rgba(201,168,76,.28);
+  --shadow:0 4px 24px rgba(0,53,107,.1); --shadow-md:0 8px 40px rgba(0,53,107,.14);
+  --shadow-lg:0 20px 72px rgba(0,53,107,.18);
+  --r:14px; --r-sm:8px; --r-lg:20px; --r-xl:28px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text-dark);min-height:100vh;overflow-x:hidden;}
+
+/* ── PROGRESS ── */
+.pg{position:fixed;top:0;left:0;right:0;height:3px;background:rgba(0,53,107,.08);z-index:300;}
+.pg-fill{height:100%;background:linear-gradient(90deg,var(--navy),var(--gold));transition:width .5s cubic-bezier(.4,0,.2,1);width:0%;}
+
+/* ── TOP NAV ── */
+.topnav{position:fixed;top:3px;left:0;right:0;z-index:299;background:var(--navy-deep);height:54px;display:flex;align-items:center;padding:0 0 0 28px;gap:0;border-bottom:1px solid rgba(255,255,255,.06);}
+.tn-brand{display:flex;align-items:center;gap:11px;margin-right:28px;flex-shrink:0;}
+.tn-y{width:28px;height:28px;background:var(--gold);border-radius:5px;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-weight:700;color:var(--navy-deep);font-size:15px;}
+.tn-name{font-family:'Cormorant Garamond',serif;font-size:16px;color:rgba(255,255,255,.88);font-style:italic;}
+.tn-sep{width:1px;height:20px;background:rgba(255,255,255,.15);margin-right:4px;}
+.tn-tabs{display:flex;align-items:stretch;height:54px;flex:1;}
+.tn-tab{display:flex;align-items:center;gap:7px;padding:0 18px;font-size:12px;font-weight:500;color:rgba(255,255,255,.55);cursor:pointer;transition:all .2s;border-bottom:2px solid transparent;white-space:nowrap;letter-spacing:.01em;}
+.tn-tab:hover{color:rgba(255,255,255,.85);}
+.tn-tab.act{color:white;border-bottom-color:var(--gold);}
+.tn-tab-icon{font-size:14px;}
+.tn-admin-btn{margin-left:auto;display:flex;align-items:center;gap:7px;padding:0 20px;height:54px;font-size:11px;font-weight:600;color:rgba(255,255,255,.5);cursor:pointer;transition:all .2s;letter-spacing:.06em;text-transform:uppercase;border-left:1px solid rgba(255,255,255,.08);text-decoration:none;}
+.tn-admin-btn:hover{color:var(--gold-light);background:rgba(255,255,255,.04);}
+
+/* ── PAGE WRAPPER ── */
+.page{display:none;margin-top:57px;min-height:calc(100vh - 57px);}
+.page.on{display:block;}
+
+/* ── SHARED UTILITIES ── */
+.divider{height:1.5px;background:var(--border);margin:32px 0;}
+.section-eye{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:10px;}
+.section-h{font-family:'Cormorant Garamond',serif;font-size:clamp(26px,4vw,38px);color:var(--navy-deep);line-height:1.15;font-weight:600;}
+.empty-state{text-align:center;padding:64px 24px;color:var(--text-muted);}
+.empty-state-icon{font-size:48px;margin-bottom:16px;display:block;opacity:.4;}
+.empty-state p{font-size:14px;line-height:1.6;}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:8px;background:var(--navy);color:white;border:none;padding:12px 26px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .22s;letter-spacing:.02em;}
+.btn:hover{background:var(--navy-mid);transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,53,107,.28);}
+.btn-sm{padding:8px 18px;font-size:12px;}
+.btn-gold{background:var(--gold);color:var(--navy-deep);}
+.btn-gold:hover{background:var(--gold-light);box-shadow:0 6px 20px rgba(201,168,76,.35);}
+.btn-ghost{background:transparent;color:var(--navy);border:1.5px solid var(--border);}
+.btn-ghost:hover{border-color:var(--navy);background:rgba(0,53,107,.04);box-shadow:none;transform:none;}
+.btn-danger{background:var(--red);color:white;}
+.btn-danger:hover{background:#b71c1c;box-shadow:0 6px 20px rgba(198,40,40,.3);}
+.btn-success{background:var(--green);color:white;}
+.btn-success:hover{background:#1b5e20;box-shadow:0 6px 20px rgba(46,125,50,.3);}
+.btn .a{transition:transform .2s;}
+.btn:hover .a{transform:translateX(3px);}
+.btnlnk{background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline;padding:0;}
+
+/* ============================================================
+   PAGE 1 — HUB / HOME
+   ============================================================ */
+.hub-hero{position:relative;min-height:500px;overflow:hidden;display:flex;align-items:center;background:var(--navy-deep);}
+#footCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
+.hub-hero-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,22,40,.92) 0%,rgba(0,53,107,.7) 60%,rgba(0,76,151,.5) 100%);}
+.hub-hero-content{position:relative;z-index:2;max-width:1000px;margin:0 auto;padding:64px 40px;display:grid;grid-template-columns:1.1fr 1fr;gap:60px;align-items:center;width:100%;}
+.hub-kicker{display:flex;align-items:center;gap:10px;margin-bottom:20px;}
+.hub-kicker-line{width:30px;height:2px;background:var(--gold);}
+.hub-kicker-text{font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:rgba(255,255,255,.55);font-weight:600;}
+.hub-h1{font-family:'Cormorant Garamond',serif;font-size:clamp(52px,7vw,80px);line-height:.95;color:white;margin-bottom:8px;font-weight:600;}
+.hub-h1 em{font-style:italic;color:var(--gold-light);}
+.hub-tagline{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:17px;color:rgba(255,255,255,.65);margin-bottom:24px;}
+.hub-desc{font-size:14px;line-height:1.75;color:rgba(255,255,255,.6);margin-bottom:32px;max-width:420px;}
+.hub-quote{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-left:3px solid var(--gold);border-radius:12px;padding:18px 20px 18px 24px;backdrop-filter:blur(8px);}
+.hub-quote p{font-family:'Cormorant Garamond',serif;font-size:16px;font-style:italic;color:rgba(255,255,255,.88);line-height:1.55;margin-bottom:5px;}
+.hub-quote cite{font-size:10px;color:rgba(255,255,255,.45);font-style:normal;letter-spacing:.06em;font-family:'DM Mono',monospace;}
+
+/* Stats bar */
+.hub-stats{background:white;border-bottom:1.5px solid var(--border);}
+.hub-stats-inner{max-width:1000px;margin:0 auto;padding:0 40px;display:grid;grid-template-columns:repeat(4,1fr);}
+.hub-stat{padding:22px 0;text-align:center;border-right:1.5px solid var(--border);}
+.hub-stat:last-child{border-right:none;}
+.hub-stat-num{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:700;color:var(--navy);line-height:1;}
+.hub-stat-label{font-size:11px;color:var(--text-muted);margin-top:4px;letter-spacing:.04em;}
+
+/* Feature cards */
+.hub-features{max-width:1000px;margin:0 auto;padding:52px 40px;}
+.hub-features-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:32px;}
+.hub-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+.hub-feature-card{background:white;border-radius:var(--r-lg);overflow:hidden;border:1.5px solid var(--border);transition:all .25s;cursor:pointer;}
+.hub-feature-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-md);border-color:rgba(0,53,107,.2);}
+.hfc-header{background:linear-gradient(135deg,var(--navy-deep),var(--navy-mid));padding:28px 24px 24px;position:relative;overflow:hidden;}
+.hfc-header::after{content:attr(data-emoji);position:absolute;right:16px;bottom:-8px;font-size:52px;opacity:.18;}
+.hfc-mile{font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,.45);letter-spacing:.15em;text-transform:uppercase;margin-bottom:8px;}
+.hfc-name{font-family:'Cormorant Garamond',serif;font-size:22px;color:white;font-weight:600;line-height:1.2;margin-bottom:4px;}
+.hfc-role{font-size:11px;color:rgba(255,255,255,.5);}
+.hfc-body{padding:20px 22px;}
+.hfc-theme{font-size:10px;color:var(--gold);font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;}
+.hfc-excerpt{font-size:13px;color:var(--text-mid);line-height:1.65;}
+.hfc-footer{padding:14px 22px;border-top:1.5px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.hfc-date{font-size:10px;color:var(--text-muted);font-family:'DM Mono',monospace;}
+.hfc-read{font-size:11px;color:var(--navy);font-weight:600;cursor:pointer;}
+
+/* Quick actions */
+.hub-actions{background:linear-gradient(135deg,var(--navy-deep),var(--navy-mid));margin:0;padding:52px 40px;}
+.hub-actions-inner{max-width:1000px;margin:0 auto;}
+.hub-actions h2{font-family:'Cormorant Garamond',serif;font-size:32px;color:white;margin-bottom:8px;font-weight:600;}
+.hub-actions p{font-size:13px;color:rgba(255,255,255,.6);margin-bottom:36px;}
+.hub-action-cards{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.hac{background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.1);border-radius:var(--r-lg);padding:28px;cursor:pointer;transition:all .25s;}
+.hac:hover{background:rgba(255,255,255,.12);transform:translateY(-3px);border-color:rgba(255,255,255,.2);}
+.hac-icon{font-size:32px;margin-bottom:14px;display:block;}
+.hac-h{font-family:'Cormorant Garamond',serif;font-size:20px;color:white;margin-bottom:6px;font-weight:600;}
+.hac-p{font-size:12px;color:rgba(255,255,255,.55);line-height:1.6;}
+
+/* ============================================================
+   PAGE 2 — SUBMIT (survey)
+   ============================================================ */
+.sv-outer{padding:48px 24px 80px;}
+.sv-inner{max-width:700px;margin:0 auto;}
+.dots{display:flex;align-items:center;gap:5px;margin-bottom:40px;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:all .32s cubic-bezier(.4,0,.2,1);}
+.dot.on{background:var(--navy);width:24px;border-radius:4px;}
+.dot.done{background:var(--gold);}
+.dot-lbl{margin-left:8px;font-size:10px;color:var(--text-muted);font-family:'DM Mono',monospace;}
+.scard{display:none;animation:riseIn .35s ease;}
+.scard.on{display:block;}
+.s-eye{font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:6px;}
+.s-ttl{font-family:'Cormorant Garamond',serif;font-size:clamp(26px,4vw,38px);color:var(--navy-deep);line-height:1.15;margin-bottom:10px;font-weight:600;}
+.s-sub{font-size:13px;color:var(--text-muted);line-height:1.68;margin-bottom:34px;}
+.jbadge{background:white;border:1.5px solid var(--border);border-radius:100px;display:inline-flex;align-items:center;gap:9px;padding:6px 14px 6px 9px;margin-bottom:26px;box-shadow:var(--shadow);}
+.jb-lbl{font-size:9px;color:var(--text-muted);font-family:'DM Mono',monospace;line-height:1;}
+.jb-name{font-size:11px;font-weight:600;color:var(--navy);}
+.jb-chg{font-size:10px;color:var(--text-muted);cursor:pointer;text-decoration:underline;margin-left:3px;background:none;border:none;font-family:'DM Sans',sans-serif;}
+.fg{margin-bottom:24px;}
+.fl{display:block;font-size:12px;font-weight:600;color:var(--navy);margin-bottom:7px;}
+.fl .req{color:var(--gold);margin-left:2px;}
+.fi,.ft,.fsel{width:100%;padding:12px 16px;border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text-dark);background:white;transition:border-color .2s,box-shadow .2s;outline:none;appearance:none;}
+.fi:focus,.ft:focus,.fsel:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(0,53,107,.08);}
+.ft{min-height:108px;resize:vertical;line-height:1.65;}
+.fsel-w{position:relative;}
+.fsel-w::after{content:'↓';position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none;font-size:12px;}
+.rgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;}
+.rcard{border:1.5px solid var(--border);border-radius:11px;padding:13px 10px;cursor:pointer;background:white;transition:all .2s;text-align:center;}
+.rcard:hover{border-color:var(--navy-mid);transform:translateY(-2px);box-shadow:0 4px 14px rgba(0,53,107,.1);}
+.rcard.sel{border-color:var(--navy);background:var(--navy);color:white;transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,53,107,.28);}
+.ri{font-size:19px;margin-bottom:4px;display:block;}
+.rn{font-size:10.5px;font-weight:600;letter-spacing:.02em;}
+.other-wrap{display:none;margin-top:9px;}
+.other-wrap.vis{display:block;}
+.fork-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:32px;}
+.fcard{border:2px solid var(--border);border-radius:20px;padding:32px 24px;cursor:pointer;background:white;text-align:left;transition:all .28s;position:relative;overflow:hidden;}
+.fcard-bg{position:absolute;inset:0;opacity:0;transition:opacity .28s;}
+.fcard:first-child .fcard-bg{background:linear-gradient(140deg,var(--navy-deep),var(--navy-mid));}
+.fcard:last-child .fcard-bg{background:linear-gradient(140deg,#1a1040,var(--navy-mid));}
+.fcard:hover{border-color:transparent;transform:translateY(-4px);box-shadow:var(--shadow-lg);}
+.fcard:hover .fcard-bg{opacity:1;}
+.fcard:hover .fc-tag,.fcard:hover .fc-h,.fcard:hover .fc-p,.fcard:hover .fc-det,.fcard:hover .fc-icon{color:rgba(255,255,255,.88)!important;}
+.fcard:hover .fc-tag{background:rgba(255,255,255,.12)!important;}
+.fcard>*{position:relative;z-index:1;}
+.fc-icon{font-size:38px;margin-bottom:16px;display:block;transition:color .28s;}
+.fc-tag{display:inline-block;font-size:9px;letter-spacing:.15em;text-transform:uppercase;font-weight:700;color:var(--navy-mid);background:rgba(0,53,107,.07);padding:3px 9px;border-radius:100px;margin-bottom:9px;transition:all .28s;}
+.fc-h{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--navy-deep);margin-bottom:8px;line-height:1.15;font-weight:600;transition:color .28s;}
+.fc-p{font-size:12.5px;color:var(--text-mid);line-height:1.65;margin-bottom:16px;transition:color .28s;}
+.fc-det{font-size:10px;color:var(--text-muted);font-family:'DM Mono',monospace;transition:color .28s;}
+.myst-banner{background:linear-gradient(135deg,var(--navy-deep),var(--navy-mid));border-radius:16px;padding:26px 30px;color:white;margin-bottom:26px;position:relative;overflow:hidden;}
+.myst-banner::after{content:'👟';position:absolute;right:18px;top:14px;font-size:44px;opacity:.18;transform:rotate(-12deg);}
+.myst-banner>*{position:relative;z-index:1;}
+.myst-banner h3{font-family:'Cormorant Garamond',serif;font-size:18px;margin-bottom:5px;font-weight:600;}
+.myst-banner p{font-size:12px;opacity:.75;line-height:1.65;}
+.psgrid{display:grid;gap:11px;}
+.pscard{border:1.5px solid var(--border);border-radius:13px;padding:18px 20px;cursor:pointer;background:white;transition:all .22s;}
+.pscard:hover{border-color:var(--navy-mid);box-shadow:0 4px 16px rgba(0,53,107,.1);}
+.pscard.sel{border-color:var(--navy);background:rgba(0,53,107,.025);box-shadow:0 0 0 3px rgba(0,53,107,.08);}
+.ps-hdr{display:flex;align-items:center;gap:10px;margin-bottom:11px;}
+.ps-num{width:24px;height:24px;border-radius:6px;background:rgba(0,53,107,.08);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:10px;font-weight:500;color:var(--navy);flex-shrink:0;transition:all .2s;}
+.pscard.sel .ps-num{background:var(--navy);color:white;}
+.ps-ttl{font-size:11px;font-weight:700;color:var(--navy);letter-spacing:.06em;text-transform:uppercase;}
+.pq{font-size:12px;color:var(--text-mid);line-height:1.5;display:flex;gap:7px;margin-bottom:4px;}
+.photo-zone{border:2px dashed var(--border-gold);border-radius:14px;padding:30px 24px;text-align:center;cursor:pointer;background:var(--gold-pale);transition:all .22s;position:relative;overflow:hidden;}
+.photo-zone:hover,.photo-zone.drag{border-color:var(--gold);background:rgba(201,168,76,.16);}
+.photo-zone.has-img{border-style:solid;border-color:var(--gold);padding:0;}
+.pz-icon{font-size:32px;margin-bottom:10px;display:block;}
+.pz-title{font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--navy);font-weight:600;margin-bottom:4px;}
+.pz-sub{font-size:11.5px;color:var(--text-muted);line-height:1.5;}
+.pz-btn{display:inline-block;margin-top:12px;font-size:11px;font-weight:600;color:var(--navy);background:white;border:1.5px solid var(--border-gold);padding:6px 16px;border-radius:100px;transition:all .2s;}
+.photo-zone:hover .pz-btn{background:var(--gold);color:white;border-color:var(--gold);}
+#photoInput{display:none;}
+#photoPreview{width:100%;max-height:260px;object-fit:cover;border-radius:12px;display:none;}
+.photo-clear{position:absolute;top:9px;right:9px;background:rgba(0,0,0,.5);color:white;border:none;border-radius:50%;width:27px;height:27px;cursor:pointer;font-size:13px;display:none;align-items:center;justify-content:center;}
+.photo-clear.vis{display:flex;}
+.tcat{margin-bottom:28px;}
+.tcat-hdr{display:flex;align-items:center;gap:9px;margin-bottom:13px;padding-bottom:9px;border-bottom:1.5px solid var(--border);}
+.tcat-icon{font-size:14px;}
+.tcat-name{font-size:10px;font-weight:700;letter-spacing:.17em;text-transform:uppercase;color:var(--navy);}
+.tgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.tcard{border:1.5px solid var(--border);border-radius:11px;padding:14px;cursor:pointer;background:white;transition:all .2s;}
+.tcard:hover{border-color:var(--navy-mid);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,53,107,.08);}
+.tcard.sel{border-color:var(--gold);background:rgba(201,168,76,.05);box-shadow:0 0 0 3px rgba(201,168,76,.14);}
+.tcard-h{font-size:12px;font-weight:600;color:var(--navy);margin-bottom:3px;line-height:1.35;}
+.tcard-p{font-size:10.5px;color:var(--text-muted);line-height:1.4;}
+.story-hdr{background:white;border:1.5px solid var(--border);border-radius:13px;padding:18px 22px;margin-bottom:24px;display:flex;align-items:flex-start;gap:13px;}
+.story-badge{background:var(--navy);color:white;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;border-radius:100px;flex-shrink:0;margin-top:2px;}
+.story-ttl{font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--navy-deep);line-height:1.3;font-weight:600;}
+.sq-num{font-family:'DM Mono',monospace;font-size:9.5px;color:var(--gold);font-weight:500;margin-bottom:4px;}
+.snav{display:flex;justify-content:space-between;align-items:center;margin-top:42px;padding-top:24px;border-top:1.5px solid var(--border);}
+.snav-cnt{font-family:'DM Mono',monospace;font-size:10px;color:var(--text-muted);}
+
+/* ============================================================
+   PAGE 3 — ARCHIVE
+   ============================================================ */
+.archive-hero{background:var(--navy-deep);padding:52px 40px;text-align:center;}
+.archive-hero h1{font-family:'Cormorant Garamond',serif;font-size:clamp(36px,5vw,54px);color:white;font-weight:600;margin-bottom:8px;}
+.archive-hero h1 em{font-style:italic;color:var(--gold-light);}
+.archive-hero p{font-size:14px;color:rgba(255,255,255,.55);max-width:480px;margin:0 auto;}
+.archive-filters{background:white;border-bottom:1.5px solid var(--border);padding:16px 40px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;max-width:none;position:sticky;top:57px;z-index:10;}
+.filter-label{font-size:11px;font-weight:600;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase;margin-right:4px;}
+.filter-btn{font-size:11px;font-weight:500;padding:6px 14px;border-radius:100px;border:1.5px solid var(--border);background:white;color:var(--text-mid);cursor:pointer;transition:all .18s;}
+.filter-btn:hover{border-color:var(--navy);color:var(--navy);}
+.filter-btn.act{background:var(--navy);color:white;border-color:var(--navy);}
+.archive-grid{max-width:1000px;margin:0 auto;padding:40px 40px 60px;display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+.mile-card{background:white;border-radius:var(--r-lg);border:1.5px solid var(--border);overflow:hidden;transition:all .24s;cursor:pointer;}
+.mile-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);border-color:rgba(0,53,107,.18);}
+.mc-header{padding:22px 20px 18px;background:linear-gradient(135deg,var(--navy-deep),var(--navy-mid));position:relative;overflow:hidden;}
+.mc-header::after{content:attr(data-emoji);position:absolute;right:12px;bottom:-6px;font-size:48px;opacity:.15;}
+.mc-num{font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,.4);letter-spacing:.15em;margin-bottom:6px;}
+.mc-name{font-family:'Cormorant Garamond',serif;font-size:20px;color:white;font-weight:600;line-height:1.2;margin-bottom:3px;}
+.mc-role{font-size:10.5px;color:rgba(255,255,255,.5);}
+.mc-body{padding:16px 20px;}
+.mc-theme-label{font-size:9.5px;color:var(--gold);font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;}
+.mc-excerpt{font-size:12.5px;color:var(--text-mid);line-height:1.65;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+.mc-footer{padding:12px 20px;border-top:1.5px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.mc-date{font-size:9.5px;color:var(--text-muted);font-family:'DM Mono',monospace;}
+.mc-campus{font-size:9.5px;color:var(--text-muted);}
+
+/* Story modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,22,40,.75);z-index:500;display:none;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(4px);}
+.modal-overlay.on{display:flex;}
+.modal{background:white;border-radius:var(--r-xl);max-width:620px;width:100%;max-height:88vh;overflow-y:auto;animation:riseIn .35s ease;}
+.modal-header{background:linear-gradient(135deg,var(--navy-deep),var(--navy-mid));padding:32px 32px 28px;position:relative;}
+.modal-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.12);border:none;color:white;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:background .2s;}
+.modal-close:hover{background:rgba(255,255,255,.22);}
+.modal-mile{font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,.4);letter-spacing:.15em;margin-bottom:8px;}
+.modal-name{font-family:'Cormorant Garamond',serif;font-size:30px;color:white;font-weight:600;margin-bottom:4px;}
+.modal-meta{font-size:11.5px;color:rgba(255,255,255,.5);}
+.modal-body{padding:28px 32px;}
+.modal-theme-badge{display:inline-block;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--gold);background:var(--gold-pale);border:1px solid var(--border-gold);padding:4px 12px;border-radius:100px;margin-bottom:20px;}
+.modal-qa{margin-bottom:22px;}
+.modal-q{font-size:12px;font-weight:600;color:var(--navy);margin-bottom:7px;line-height:1.4;}
+.modal-a{font-size:14px;color:var(--text-mid);line-height:1.72;}
+
+/* ============================================================
+   PAGE 4 — MYSTERY MILE VOTING
+   ============================================================ */
+.mystery-hero{background:linear-gradient(135deg,var(--navy-deep) 0%,#1a0a3d 100%);padding:52px 40px;text-align:center;position:relative;overflow:hidden;}
+.mystery-hero::before{content:'👟';position:absolute;left:5%;top:50%;transform:translateY(-50%);font-size:100px;opacity:.06;}
+.mystery-hero::after{content:'👟';position:absolute;right:5%;top:50%;transform:translateY(-50%) scaleX(-1);font-size:100px;opacity:.06;}
+.mystery-hero h1{font-family:'Cormorant Garamond',serif;font-size:clamp(36px,5vw,54px);color:white;font-weight:600;margin-bottom:8px;position:relative;z-index:1;}
+.mystery-hero h1 em{font-style:italic;color:var(--gold-light);}
+.mystery-hero p{font-size:14px;color:rgba(255,255,255,.55);max-width:500px;margin:0 auto;position:relative;z-index:1;}
+.mystery-content{max-width:800px;margin:0 auto;padding:48px 40px 64px;}
+.mystery-this-month{background:white;border-radius:var(--r-xl);border:1.5px solid var(--border);overflow:hidden;box-shadow:var(--shadow-md);margin-bottom:40px;}
+.mtm-header{background:linear-gradient(135deg,#1a0a3d,var(--navy-mid));padding:28px 32px;display:flex;align-items:center;gap:20px;}
+.mtm-shoe-frame{width:120px;height:120px;border-radius:var(--r);overflow:hidden;border:3px solid rgba(255,255,255,.15);flex-shrink:0;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:56px;}
+.mtm-shoe-frame img{width:100%;height:100%;object-fit:cover;}
+.mtm-info{flex:1;}
+.mtm-label{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.45);font-family:'DM Mono',monospace;margin-bottom:8px;}
+.mtm-title{font-family:'Cormorant Garamond',serif;font-size:26px;color:white;font-weight:600;margin-bottom:5px;}
+.mtm-timer{font-size:12px;color:var(--gold-light);font-family:'DM Mono',monospace;}
+.mtm-clues{padding:28px 32px;}
+.mtm-clue{display:flex;gap:14px;margin-bottom:20px;padding-bottom:20px;border-bottom:1.5px solid var(--border);}
+.mtm-clue:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+.mtm-clue-num{width:28px;height:28px;border-radius:8px;background:var(--navy-light);color:var(--navy);font-family:'DM Mono',monospace;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.mtm-clue-q{font-size:11.5px;font-weight:600;color:var(--navy);margin-bottom:4px;}
+.mtm-clue-a{font-size:13.5px;color:var(--text-mid);line-height:1.6;font-family:'Cormorant Garamond',serif;font-style:italic;}
+
+/* Voting */
+.vote-section{background:white;border-radius:var(--r-xl);border:1.5px solid var(--border);padding:28px 32px;margin-bottom:28px;}
+.vote-section h3{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--navy-deep);margin-bottom:6px;font-weight:600;}
+.vote-section p{font-size:12.5px;color:var(--text-muted);margin-bottom:22px;line-height:1.6;}
+.vote-options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+.vote-option{border:1.5px solid var(--border);border-radius:11px;padding:14px 16px;cursor:pointer;background:white;transition:all .2s;display:flex;align-items:center;gap:12px;}
+.vote-option:hover{border-color:var(--navy-mid);background:var(--navy-light);}
+.vote-option.selected{border-color:var(--navy);background:var(--navy);color:white;}
+.vote-option.selected .vo-name{color:white;}
+.vote-option.selected .vo-role{color:rgba(255,255,255,.65);}
+.vo-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--navy-light),rgba(0,76,151,.2));display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.vote-option.selected .vo-avatar{background:rgba(255,255,255,.15);}
+.vo-name{font-size:12.5px;font-weight:600;color:var(--navy);transition:color .2s;}
+.vo-role{font-size:10.5px;color:var(--text-muted);transition:color .2s;}
+.vote-results{margin-top:24px;display:none;}
+.vote-results.on{display:block;}
+.vr-bar-row{margin-bottom:12px;}
+.vr-name{font-size:12px;font-weight:600;color:var(--navy);margin-bottom:4px;display:flex;justify-content:space-between;}
+.vr-bar-bg{height:10px;background:var(--navy-light);border-radius:100px;overflow:hidden;}
+.vr-bar-fill{height:100%;background:linear-gradient(90deg,var(--navy),var(--navy-mid));border-radius:100px;transition:width .6s cubic-bezier(.4,0,.2,1);}
+.reveal-card{background:linear-gradient(135deg,var(--navy-deep),#1a0a3d);border-radius:var(--r-lg);padding:28px 32px;text-align:center;display:none;}
+.reveal-card.on{display:block;}
+.reveal-icon{font-size:48px;margin-bottom:14px;display:block;animation:bounceIn .7s ease;}
+.reveal-label{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.45);font-family:'DM Mono',monospace;margin-bottom:8px;}
+.reveal-name{font-family:'Cormorant Garamond',serif;font-size:32px;color:white;font-weight:600;margin-bottom:4px;}
+.reveal-sub{font-size:13px;color:rgba(255,255,255,.55);}
+
+/* past mysteries */
+.past-mysteries{max-width:800px;margin:0 auto;padding:0 40px 60px;}
+.pm-h{font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--navy-deep);margin-bottom:20px;font-weight:600;}
+.pm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.pm-card{background:white;border:1.5px solid var(--border);border-radius:var(--r);padding:16px;transition:all .2s;}
+.pm-card:hover{box-shadow:var(--shadow);border-color:rgba(0,53,107,.2);}
+.pm-shoe{width:100%;height:80px;border-radius:8px;background:linear-gradient(135deg,var(--navy-deep),var(--navy-mid));display:flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:12px;overflow:hidden;}
+.pm-shoe img{width:100%;height:100%;object-fit:cover;}
+.pm-name{font-size:12px;font-weight:600;color:var(--navy);margin-bottom:2px;}
+.pm-meta{font-size:10.5px;color:var(--text-muted);}
+
+/* ============================================================
+   SUCCESS SCREEN
+   ============================================================ */
+.succ-outer{display:none;position:fixed;inset:0;z-index:400;background:var(--cream);align-items:center;justify-content:center;padding:40px 24px;}
+.succ-outer.on{display:flex;}
+#confettiCanvas{position:fixed;inset:0;pointer-events:none;z-index:500;}
+.succ-inner{max-width:540px;text-align:center;animation:riseIn .7s ease;position:relative;z-index:1;}
+.succ-icon{font-size:54px;margin-bottom:14px;display:block;animation:bounceIn .7s .25s both;}
+.succ-jbadge{display:inline-flex;align-items:center;gap:7px;background:white;border:1.5px solid var(--border-gold);border-radius:100px;padding:4px 14px;margin-bottom:16px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);font-weight:700;}
+.succ-h{font-family:'Cormorant Garamond',serif;font-size:clamp(38px,6vw,56px);color:var(--navy-deep);line-height:1.05;margin-bottom:14px;font-weight:600;}
+.succ-h em{font-style:italic;color:var(--gold);}
+.succ-theme-card{background:white;border:1.5px solid var(--border-gold);border-radius:var(--r-lg);padding:20px 26px;margin:0 auto 24px;max-width:440px;position:relative;overflow:hidden;}
+.succ-theme-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--gold),var(--gold-light));}
+.stc-label{font-size:9.5px;letter-spacing:.17em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:4px;}
+.stc-name{font-family:'Cormorant Garamond',serif;font-size:19px;color:var(--navy-deep);font-weight:600;line-height:1.25;margin-bottom:7px;}
+.stc-msg{font-size:12.5px;color:var(--text-mid);line-height:1.65;}
+.succ-sub{font-size:13px;color:var(--text-mid);line-height:1.7;margin-bottom:28px;}
+.succ-acts{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;}
+
+.wam-submit-err{display:none;margin-bottom:16px;padding:12px 16px;border-radius:var(--r-sm);background:var(--red-light);color:var(--red);font-size:13px;line-height:1.5;}
+.wam-submit-err.on{display:block;}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes riseIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes bounceIn{0%{transform:scale(.2);opacity:0}60%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media(max-width:900px){
+  .hub-hero-content,.hub-action-cards,.fork-grid,.vote-options,.pm-grid{grid-template-columns:1fr;}
+  .hub-grid,.archive-grid,.tgrid{grid-template-columns:1fr 1fr;}
+  .tn-tabs .tn-tab span{display:none;}
+}
+@media(max-width:620px){
+  .hub-hero-content,.archive-grid,.hub-grid,.tgrid{grid-template-columns:1fr;}
+  .topnav{padding:0 14px;}
+  .hub-hero-content,.hub-features,.archive-filters,.archive-grid,.mystery-content,.past-mysteries{padding-left:18px;padding-right:18px;}
+  .rgrid{grid-template-columns:repeat(2,1fr);}
+}
+</style>
+</head>
+<body>
+
+<canvas id="confettiCanvas"></canvas>
+<div class="pg"><div class="pg-fill" id="pb"></div></div>
+
+<!-- ── TOP NAV ── -->
+<nav class="topnav">
+  <div class="tn-brand">
+    <div class="tn-y">Y</div>
+    <div class="tn-name">Walk a Mile</div>
+  </div>
+  <div class="tn-sep"></div>
+  <div class="tn-tabs">
+    <div class="tn-tab act" onclick="showPage('hub')" id="tab-hub"><span class="tn-tab-icon">🏠</span><span>Home</span></div>
+    <div class="tn-tab" onclick="showPage('submit')" id="tab-submit"><span class="tn-tab-icon">✍️</span><span>Submit</span></div>
+    <div class="tn-tab" onclick="showPage('archive')" id="tab-archive"><span class="tn-tab-icon">📚</span><span>Archive</span></div>
+    <div class="tn-tab" onclick="showPage('mystery')" id="tab-mystery"><span class="tn-tab-icon">👟</span><span>Mystery Mile</span></div>
+  </div>
+  <a href="admin.html" class="tn-admin-btn">⚙️ <span>Admin</span></a>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE: HUB
+══════════════════════════════════════════════════════════ -->
+<div class="page on" id="page-hub">
+  <!-- Hero -->
+  <div class="hub-hero">
+    <canvas id="footCanvas"></canvas>
+    <div class="hub-hero-overlay"></div>
+    <div class="hub-hero-content">
+      <div style="animation:riseIn .9s ease both">
+        <div class="hub-kicker"><div class="hub-kicker-line"></div><div class="hub-kicker-text">Yale Anesthesiology · Office of Collaborative Excellence</div></div>
+        <h1 class="hub-h1">Walk<br><em>a Mile</em></h1>
+        <p class="hub-tagline">Every Step Has a Story. Walk It Together.</p>
+        <p class="hub-desc">A monthly campaign humanizing our department — one story, one shoe, one mile at a time. Faculty, residents, CRNAs, researchers, and admins all walk here.</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+          <button class="btn btn-gold" onclick="showPage('submit')">Share My Mile <span class="a">→</span></button>
+          <button class="btn" style="background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.15);" onclick="showPage('archive')">Read the Archive</button>
+        </div>
+      </div>
+      <div style="animation:riseIn .9s .18s ease both">
+        <div class="hub-quote">
+          <p>"I had no idea Dr. Chen moonlighted as a line cook for six years. Now I see it every time she runs a code — total calm under fire."</p>
+          <cite>— Fictional Yale Faculty</cite>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="hub-stats">
+    <div class="hub-stats-inner">
+      <div class="hub-stat"><div class="hub-stat-num" id="statMiles">0</div><div class="hub-stat-label">Miles Logged</div></div>
+      <div class="hub-stat"><div class="hub-stat-num" id="statCampuses">6</div><div class="hub-stat-label">Campuses</div></div>
+      <div class="hub-stat"><div class="hub-stat-num" id="statRoles">5</div><div class="hub-stat-label">Role Types</div></div>
+      <div class="hub-stat"><div class="hub-stat-num" id="statMysteries">0</div><div class="hub-stat-label">Mystery Milers</div></div>
+    </div>
+  </div>
+
+  <!-- Featured Miles -->
+  <div class="hub-features">
+    <div class="hub-features-header">
+      <div>
+        <div class="section-eye">This Month</div>
+        <h2 class="section-h">Featured Miles</h2>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="showPage('archive')">View All →</button>
+    </div>
+    <div class="hub-grid" id="hubFeaturedGrid">
+      <div class="empty-state" style="grid-column:1/-1">
+        <span class="empty-state-icon">👟</span>
+        <p>No featured Miles yet.<br>Be the first to share yours!</p>
+        <br><button class="btn btn-sm" onclick="showPage('submit')">Submit Your Mile</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Cards -->
+  <div class="hub-actions">
+    <div class="hub-actions-inner">
+      <h2>Ready to Walk?</h2>
+      <p>Choose your path and join the campaign.</p>
+      <div class="hub-action-cards">
+        <div class="hac" onclick="showPage('submit');startJourney('conv')">
+          <span class="hac-icon">📖</span>
+          <div class="hac-h">Share Your Conventional Mile</div>
+          <div class="hac-p">Choose a theme, answer three questions, and let your colleagues walk a mile in your shoes. Your named story featured on intranet and newsletter.</div>
+        </div>
+        <div class="hac" onclick="showPage('submit');startJourney('myst')">
+          <span class="hac-icon">👟</span>
+          <div class="hac-h">Enter the Mystery Mile</div>
+          <div class="hac-p">Stay anonymous. Upload your shoe photo, drop three clues, and let the department guess who you are. One mystery revealed each month.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div><!-- /page-hub -->
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE: SUBMIT
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="page-submit">
+  <div class="sv-outer"><div class="sv-inner">
+    <p id="wamSubmitErr" class="wam-submit-err" role="alert"></p>
+
+    <!-- FORK -->
+    <div class="scard on" id="sv-fork">
+      <div style="text-align:center;margin-bottom:40px;padding-top:16px;">
+        <div class="section-eye">Choose Your Journey</div>
+        <h2 class="s-ttl" style="font-size:clamp(30px,5vw,46px);">How Would You Like<br>to Walk Your Mile?</h2>
+        <p class="s-sub">Both paths celebrate who you are — pick the one that fits how you want to show up this month.</p>
+      </div>
+      <div class="fork-grid">
+        <div class="fcard" onclick="startJourney('conv')">
+          <div class="fcard-bg"></div>
+          <span class="fc-icon">📖</span>
+          <div class="fc-tag">Featured Story</div>
+          <div class="fc-h">Conventional Mile</div>
+          <div class="fc-p">Tell your story in your own words. Choose a theme, answer three questions. Your named feature on the intranet and newsletter.</div>
+          <div class="fc-det">3 steps · ~5 min · Named feature</div>
+        </div>
+        <div class="fcard" onclick="startJourney('myst')">
+          <div class="fcard-bg"></div>
+          <span class="fc-icon">👟</span>
+          <div class="fc-tag">Anonymous Contest</div>
+          <div class="fc-h">Mystery Mile</div>
+          <div class="fc-p">Stay anonymous. Upload your shoe photo and three clues. Let the whole department guess who you are.</div>
+          <div class="fc-det">3 steps · ~4 min · Anonymous</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONVENTIONAL STEPS -->
+    <div id="sv-conv" style="display:none;">
+      <div class="dots">
+        <div class="dot on" id="cd0"></div>
+        <div class="dot" id="cd1"></div>
+        <div class="dot" id="cd2"></div>
+        <span class="dot-lbl" id="cLbl">Step 1 of 3</span>
+      </div>
+      <div class="scard on" id="c1">
+        <div class="jbadge"><span>📖</span><div><div class="jb-lbl">Journey</div><div class="jb-name">Conventional Mile</div></div><button class="jb-chg" onclick="resetToFork()">Change</button></div>
+        <div class="s-eye">Section 1 — About You</div>
+        <h2 class="s-ttl">Let's get to know you</h2>
+        <p class="s-sub">This helps us feature you properly. Your name and role will appear with your story.</p>
+        <div class="fg"><label class="fl">Full Name <span class="req">*</span></label><input class="fi" id="cName" placeholder="Dr. Jane Smith" /></div>
+        <div class="fg"><label class="fl">Campus <span class="req">*</span></label><div class="fsel-w"><select class="fsel" id="cCampus"><option value="">Select your campus…</option><option>Yale New Haven Hospital — York Street</option><option>Yale New Haven Hospital — Saint Raphael</option><option>Bridgeport Hospital</option><option>Greenwich Hospital</option><option>Lawrence + Memorial Hospital</option><option>Westerly Hospital</option><option>Other</option></select></div></div>
+        <div class="fg"><label class="fl">Role <span class="req">*</span></label>
+          <div class="rgrid" id="cRG">
+            <div class="rcard" onclick="selR('c',this,'Faculty')"><span class="ri">🩺</span><div class="rn">Faculty</div></div>
+            <div class="rcard" onclick="selR('c',this,'Resident/Fellow')"><span class="ri">🏥</span><div class="rn">Resident / Fellow</div></div>
+            <div class="rcard" onclick="selR('c',this,'CRNA')"><span class="ri">💉</span><div class="rn">CRNA</div></div>
+            <div class="rcard" onclick="selR('c',this,'Research Staff')"><span class="ri">🔬</span><div class="rn">Research Staff</div></div>
+            <div class="rcard" onclick="selR('c',this,'Administrative Staff')"><span class="ri">📋</span><div class="rn">Admin Staff</div></div>
+            <div class="rcard" onclick="selR('c',this,'Other')"><span class="ri">✨</span><div class="rn">Other</div></div>
+          </div>
+          <div class="other-wrap" id="cOW"><input class="fi" id="cOR" placeholder="Please describe your role…" /></div>
+        </div>
+        <div class="snav"><button class="btn btn-ghost" onclick="resetToFork()">← Back</button><span class="snav-cnt">Step 1 of 3</span><button class="btn" onclick="cGo(2)">Continue <span class="a">→</span></button></div>
+      </div>
+      <div class="scard" id="c2">
+        <div class="s-eye">Section 2 — Your Theme</div>
+        <h2 class="s-ttl">What's Your Mile About?</h2>
+        <p class="s-sub">Pick the story you most want to tell. Three tailored questions follow.</p>
+        <div id="cTC"></div>
+        <div class="snav"><button class="btn btn-ghost" onclick="cGo(1)">← Back</button><span class="snav-cnt">Step 2 of 3</span><button class="btn" onclick="cGo(3)">Continue <span class="a">→</span></button></div>
+      </div>
+      <div class="scard" id="c3">
+        <div class="s-eye">Section 3 — Your Story</div>
+        <h2 class="s-ttl">Tell Your Story</h2>
+        <p class="s-sub">No right answers. Just honest ones.</p>
+        <div id="cSP"></div>
+        <div class="snav"><button class="btn btn-ghost" onclick="cGo(2)">← Back</button><span class="snav-cnt">Step 3 of 3</span><button type="button" class="btn" id="btnSubmitConv" onclick="submitConv()">Submit My Mile 📖</button></div>
+      </div>
+    </div>
+
+    <!-- MYSTERY STEPS -->
+    <div id="sv-myst" style="display:none;">
+      <div class="dots">
+        <div class="dot on" id="md0"></div>
+        <div class="dot" id="md1"></div>
+        <div class="dot" id="md2"></div>
+        <span class="dot-lbl" id="mLbl">Step 1 of 3</span>
+      </div>
+      <div class="scard on" id="m1">
+        <div class="jbadge"><span>👟</span><div><div class="jb-lbl">Journey</div><div class="jb-name">Mystery Mile</div></div><button class="jb-chg" onclick="resetToFork()">Change</button></div>
+        <div class="s-eye">Section 1 — About You</div>
+        <h2 class="s-ttl">First, a little about you</h2>
+        <p class="s-sub">Your name won't appear in the mystery feature — this is for our records only.</p>
+        <div class="fg"><label class="fl">Full Name <span class="req">*</span></label><input class="fi" id="mName" placeholder="Dr. Jane Smith" /></div>
+        <div class="fg"><label class="fl">Campus <span class="req">*</span></label><div class="fsel-w"><select class="fsel" id="mCampus"><option value="">Select your campus…</option><option>Yale New Haven Hospital — York Street</option><option>Yale New Haven Hospital — Saint Raphael</option><option>Bridgeport Hospital</option><option>Greenwich Hospital</option><option>Lawrence + Memorial Hospital</option><option>Westerly Hospital</option><option>Other</option></select></div></div>
+        <div class="fg"><label class="fl">Role <span class="req">*</span></label>
+          <div class="rgrid" id="mRG">
+            <div class="rcard" onclick="selR('m',this,'Faculty')"><span class="ri">🩺</span><div class="rn">Faculty</div></div>
+            <div class="rcard" onclick="selR('m',this,'Resident/Fellow')"><span class="ri">🏥</span><div class="rn">Resident / Fellow</div></div>
+            <div class="rcard" onclick="selR('m',this,'CRNA')"><span class="ri">💉</span><div class="rn">CRNA</div></div>
+            <div class="rcard" onclick="selR('m',this,'Research Staff')"><span class="ri">🔬</span><div class="rn">Research Staff</div></div>
+            <div class="rcard" onclick="selR('m',this,'Administrative Staff')"><span class="ri">📋</span><div class="rn">Admin Staff</div></div>
+            <div class="rcard" onclick="selR('m',this,'Other')"><span class="ri">✨</span><div class="rn">Other</div></div>
+          </div>
+          <div class="other-wrap" id="mOW"><input class="fi" id="mOR" placeholder="Please describe your role…" /></div>
+        </div>
+        <div class="snav"><button class="btn btn-ghost" onclick="resetToFork()">← Back</button><span class="snav-cnt">Step 1 of 3</span><button class="btn" onclick="mGo(2)">Continue <span class="a">→</span></button></div>
+      </div>
+      <div class="scard" id="m2">
+        <div class="s-eye">Section 2 — Choose Your Prompt Set</div>
+        <h2 class="s-ttl">Pick Your Clue Set</h2>
+        <p class="s-sub">These are your anonymous clues. Pick the set that feels most <em>you</em>.</p>
+        <div class="myst-banner"><h3>How Mystery Mile Works</h3><p>Your shoe photo + three clues go out anonymously. The department votes. The reveal drops at month's end!</p></div>
+        <div class="psgrid" id="mPG"></div>
+        <div class="snav"><button class="btn btn-ghost" onclick="mGo(1)">← Back</button><span class="snav-cnt">Step 2 of 3</span><button class="btn" onclick="mGo(3)">Continue <span class="a">→</span></button></div>
+      </div>
+      <div class="scard" id="m3">
+        <div class="s-eye">Section 3 — Your Clues</div>
+        <h2 class="s-ttl">Upload Your Shoe & Answer Your Clues</h2>
+        <p class="s-sub">Be as revealing or as cryptic as you like — these go out anonymously.</p>
+        <div class="fg">
+          <label class="fl">Your Shoe Photo <span class="req">*</span></label>
+          <div class="photo-zone" id="photoZone" onclick="document.getElementById('photoInput').click()" ondragover="dzOver(event)" ondragleave="dzLeave(event)" ondrop="dzDrop(event)">
+            <img id="photoPreview" alt="Shoe preview" />
+            <button class="photo-clear" id="photoClear" onclick="clearPhoto(event)">✕</button>
+            <div id="photoPlaceholder">
+              <span class="pz-icon">👟</span>
+              <div class="pz-title">Drop your shoe photo here</div>
+              <div class="pz-sub">Just the shoes — no faces needed.<br>JPG · PNG · WEBP · Max 10MB</div>
+              <div class="pz-btn">Browse Files</div>
+            </div>
+          </div>
+          <input type="file" id="photoInput" accept="image/*" onchange="handlePhoto(event)" />
+        </div>
+        <div id="mAP"></div>
+        <div class="snav"><button class="btn btn-ghost" onclick="mGo(2)">← Back</button><span class="snav-cnt">Step 3 of 3</span><button type="button" class="btn" id="btnSubmitMyst" onclick="submitMyst()">Submit My Clues 👟</button></div>
+      </div>
+    </div>
+
+  </div></div>
+</div><!-- /page-submit -->
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE: ARCHIVE
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="page-archive">
+  <div class="archive-hero">
+    <h1>The <em>Archive</em></h1>
+    <p>Browse every public story: <strong>featured</strong> Miles and the <strong>archive</strong> of past features.</p>
+  </div>
+  <div class="archive-filters" id="archiveFilters">
+    <span class="filter-label">Filter:</span>
+    <button class="filter-btn act" onclick="filterArchive('all',this)">All Roles</button>
+    <button class="filter-btn" onclick="filterArchive('Faculty',this)">Faculty</button>
+    <button class="filter-btn" onclick="filterArchive('Resident/Fellow',this)">Resident</button>
+    <button class="filter-btn" onclick="filterArchive('CRNA',this)">CRNA</button>
+    <button class="filter-btn" onclick="filterArchive('Research Staff',this)">Research</button>
+    <button class="filter-btn" onclick="filterArchive('Administrative Staff',this)">Admin</button>
+  </div>
+  <div class="archive-grid" id="archiveGrid">
+    <div class="empty-state" style="grid-column:1/-1">
+      <span class="empty-state-icon">📚</span>
+      <p>No stories in the archive yet.<br>Stories appear here once an admin marks them <strong>Featured</strong> or <strong>Archive</strong>.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE: MYSTERY MILE
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="page-mystery">
+  <div class="mystery-hero">
+    <h1>Mystery <em>Mile</em></h1>
+    <p>Three clues. One shoe. Can you guess who it is?</p>
+  </div>
+  <div class="mystery-content">
+
+    <!-- This month -->
+    <div class="mystery-this-month" id="mysteryThisMonth">
+      <!-- Populated by JS -->
+    </div>
+
+    <!-- Voting -->
+    <div class="vote-section" id="voteSection">
+      <h3>Who Do You Think It Is?</h3>
+      <p>Make your guess below. Results reveal at the end of the month.</p>
+      <div class="vote-options" id="voteOptions"></div>
+      <button class="btn" onclick="castVote()" id="voteBtn">Cast My Vote →</button>
+      <div class="vote-results" id="voteResults">
+        <div class="divider"></div>
+        <p style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em;">Current Guesses</p>
+        <div id="vrBars"></div>
+      </div>
+    </div>
+
+    <!-- Reveal -->
+    <div class="reveal-card" id="revealCard"></div>
+  </div>
+
+  <!-- Past mysteries -->
+  <div class="past-mysteries">
+    <h2 class="pm-h">Past Mystery Milers</h2>
+    <div class="pm-grid" id="pastMystGrid">
+      <div class="empty-state" style="grid-column:1/-1">
+        <span class="empty-state-icon">👟</span>
+        <p>No past mysteries yet.<br>History will appear here after each month's reveal.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SUCCESS OVERLAY
+══════════════════════════════════════════════════════════ -->
+<div class="succ-outer" id="succScreen">
+  <div class="succ-inner">
+    <span class="succ-icon" id="sIcon">📖</span>
+    <div class="succ-jbadge" id="sJBadge">Submitted ✓</div>
+    <h2 class="succ-h">Your Mile<br>Has Been <em>Logged.</em></h2>
+    <div class="succ-theme-card">
+      <div class="stc-label" id="stcLabel">Your Theme</div>
+      <div class="stc-name" id="stcName">—</div>
+      <div class="stc-msg" id="stcMsg">—</div>
+    </div>
+    <p class="succ-sub" id="sSub">—</p>
+    <div class="succ-acts">
+      <button class="btn" onclick="closeSuccess()">Back to Home <span class="a">→</span></button>
+      <button class="btn btn-ghost" onclick="closeSuccess();resetToFork();">Submit Another Mile</button>
+    </div>
+  </div>
+</div>
+
+<!-- Story Detail Modal -->
+<div class="modal-overlay" id="storyModal" onclick="closeModal(event)">
+  <div class="modal" id="storyModalInner">
+    <div class="modal-header">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div class="modal-mile" id="mm-mile">Mile #—</div>
+      <div class="modal-name" id="mm-name">—</div>
+      <div class="modal-meta" id="mm-meta">—</div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-theme-badge" id="mm-theme">—</div>
+      <div id="mm-qa"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.8/dist/umd/supabase.min.js"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/wam-db.js"></script>
+<script>
+// ============================================================
+// IT INTEGRATION NOTES:
+// - Replace localStorage calls with fetch() to your intranet API
+// - Replace submission handlers with POST to your backend
+// - Admin page should be gated by SSO role check
+// - Photo uploads should go to your file storage (not base64)
+// - Votes should be server-side deduplicated by user session
+// ============================================================
+
+// ============================================================
+// Data layer: Supabase via WamDb (see js/wam-db.js)
+// ============================================================
+
+function getDB() {
+  return WamDb.getSubmissions();
+}
+
+function getVotes() {
+  return WamDb.getVotes();
+}
+
+function showSubmitErr(msg) {
+  const el = document.getElementById('wamSubmitErr');
+  if (!el) return;
+  el.textContent = msg || 'Something went wrong. Please try again.';
+  el.classList.add('on');
+  el.style.display = 'block';
+}
+
+function clearSubmitErr() {
+  const el = document.getElementById('wamSubmitErr');
+  if (!el) return;
+  el.textContent = '';
+  el.classList.remove('on');
+  el.style.display = 'none';
+}
+
+function addSubmissionWithTimeout(sub, ms) {
+  const limit = ms != null ? ms : 90000;
+  let timer;
+  const subPromise = WamDb.addSubmission(sub);
+  const timeoutPromise = new Promise(function (_, rej) {
+    timer = setTimeout(function () {
+      rej(new Error('Request timed out. Check your connection and try again.'));
+    }, limit);
+  });
+  return Promise.race([subPromise, timeoutPromise]).finally(function () {
+    if (timer) clearTimeout(timer);
+  });
+}
+
+let _submitBusy = false;
+function setSubmitBusy(busy) {
+  _submitBusy = busy;
+  const a = document.getElementById('btnSubmitConv');
+  const b = document.getElementById('btnSubmitMyst');
+  if (a) a.disabled = busy;
+  if (b) b.disabled = busy;
+}
+
+function scheduleResetWizardAfterSuccess() {
+  setTimeout(function () {
+    resetToFork();
+  }, 0);
+}
+
+function refreshAll() {
+  buildHubStats();
+  buildHubFeatured();
+  buildArchive(currentFilter);
+  buildMysteryPage();
+}
+
+// ── NAVIGATION ───────────────────────────────────────────────
+let currentFilter='all';
+let submitRejectionHandler=null;
+
+function showPage(id){
+  if(submitRejectionHandler){
+    window.removeEventListener('unhandledrejection',submitRejectionHandler);
+    submitRejectionHandler=null;
+  }
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tn-tab').forEach(t=>t.classList.remove('act'));
+  document.getElementById('page-'+id).classList.add('on');
+  const tab=document.getElementById('tab-'+id);
+  if(tab)tab.classList.add('act');
+  if(id==='hub')setProg(0);
+  else if(id==='submit'){
+    setProg(5);
+    clearSubmitErr();
+    submitRejectionHandler=function(ev){
+      const m=(ev.reason&&ev.reason.message)||String(ev.reason||'Unknown error');
+      showSubmitErr(m);
+    };
+    window.addEventListener('unhandledrejection',submitRejectionHandler);
+  }
+  else setProg(20);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function setProg(p){document.getElementById('pb').style.width=p+'%';}
+
+// ── HUB ──────────────────────────────────────────────────────
+function buildHubStats(){
+  const db=getDB();
+  const pub=(s)=>(s.status==='featured'||s.status==='archived');
+  const conv=db.filter(s=>s.type==='conv'&&pub(s));
+  const myst=db.filter(s=>s.type==='myst'&&pub(s));
+  animNum('statMiles',conv.length);
+  animNum('statMysteries',myst.length);
+}
+
+function animNum(id,target){
+  const el=document.getElementById(id);
+  if(!el)return;
+  let n=0,step=Math.max(1,Math.floor(target/20));
+  const t=setInterval(()=>{n=Math.min(n+step,target);el.textContent=n;if(n>=target)clearInterval(t);},40);
+}
+
+function buildHubFeatured(){
+  const db=getDB();
+  const featured=db.filter(s=>s.type==='conv'&&s.status==='featured').slice(0,3);
+  const grid=document.getElementById('hubFeaturedGrid');
+  if(!grid)return;
+  if(featured.length===0){
+    grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><span class="empty-state-icon">👟</span><p>No featured Miles yet.<br>Be the first to share yours!</p><br><button class="btn btn-sm" onclick="showPage('submit')">Submit Your Mile</button></div>`;
+    return;
+  }
+  grid.innerHTML=featured.map(s=>makeHubCard(s)).join('');
+}
+
+function roleEmoji(r){return{Faculty:'🩺','Resident/Fellow':'🏥',CRNA:'💉','Research Staff':'🔬','Administrative Staff':'📋',Other:'✨'}[r]||'👤';}
+
+function makeHubCard(s){
+  const em=roleEmoji(s.role);
+  const date=new Date(s.submittedAt).toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  const excerpt=s.answers?.[0]||'';
+  return `<div class="hub-feature-card" onclick="openModal('${s.id}')">
+    <div class="hfc-header" data-emoji="${em}">
+      <div class="hfc-mile">Mile #${s.mileNumber||'—'}</div>
+      <div class="hfc-name">${s.name}</div>
+      <div class="hfc-role">${s.role} · ${s.campus}</div>
+    </div>
+    <div class="hfc-body">
+      <div class="hfc-theme">${s.theme||''}</div>
+      <div class="hfc-excerpt">${excerpt.substring(0,120)}${excerpt.length>120?'…':''}</div>
+    </div>
+    <div class="hfc-footer">
+      <span class="hfc-date">${date}</span>
+      <span class="hfc-read">Read →</span>
+    </div>
+  </div>`;
+}
+
+// ── ARCHIVE ───────────────────────────────────────────────────
+function filterArchive(role, btn){
+  currentFilter=role;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('act'));
+  btn.classList.add('act');
+  buildArchive(role);
+}
+
+function buildArchive(role){
+  const db=getDB();
+  let items=db.filter(s=>s.type==='conv'&&(s.status==='featured'||s.status==='archived'));
+  if(role!=='all')items=items.filter(s=>s.role===role);
+  const grid=document.getElementById('archiveGrid');
+  if(!grid)return;
+  if(items.length===0){
+    grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><span class="empty-state-icon">📚</span><p>No stories here yet.<br>Featured and archived Miles show up here for visitors.</p></div>`;
+    return;
+  }
+  grid.innerHTML=items.map(s=>{
+    const em=roleEmoji(s.role);
+    const date=new Date(s.submittedAt).toLocaleDateString('en-US',{month:'short',year:'numeric'});
+    const excerpt=s.answers?.[0]||'';
+    return `<div class="mile-card" onclick="openModal('${s.id}')">
+      <div class="mc-header" data-emoji="${em}">
+        <div class="mc-num">Mile #${s.mileNumber||'—'}</div>
+        <div class="mc-name">${s.name}</div>
+        <div class="mc-role">${s.role}</div>
+      </div>
+      <div class="mc-body">
+        <div class="mc-theme-label">${s.theme||''}</div>
+        <div class="mc-excerpt">${excerpt.substring(0,110)}${excerpt.length>110?'…':''}</div>
+      </div>
+      <div class="mc-footer">
+        <span class="mc-date">${date}</span>
+        <span class="mc-campus">${s.campus}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── STORY MODAL ───────────────────────────────────────────────
+function openModal(id){
+  const s=getDB().find(s=>s.id===id);
+  if(!s)return;
+  if(s.status==='pending'&&!(typeof WamDb!=='undefined'&&WamDb.isAdminUser&&WamDb.isAdminUser()))return;
+  document.getElementById('mm-mile').textContent='Mile #'+(s.mileNumber||'—');
+  document.getElementById('mm-name').textContent=s.name;
+  document.getElementById('mm-meta').textContent=s.role+' · '+s.campus;
+  document.getElementById('mm-theme').textContent=s.theme||'';
+  const qa=document.getElementById('mm-qa');
+  if(s.questions&&s.answers){
+    qa.innerHTML=s.questions.map((q,i)=>`
+      <div class="modal-qa">
+        <div class="modal-q">${q}</div>
+        <div class="modal-a">${s.answers[i]||'—'}</div>
+      </div>`).join('');
+  } else {
+    qa.innerHTML=(s.answers||[]).map((a,i)=>`<div class="modal-qa"><div class="modal-q">Question ${i+1}</div><div class="modal-a">${a||'—'}</div></div>`).join('');
+  }
+  document.getElementById('storyModal').classList.add('on');
+}
+function closeModal(e){
+  if(!e||e.target===document.getElementById('storyModal'))
+    document.getElementById('storyModal').classList.remove('on');
+}
+
+// ── MYSTERY PAGE ──────────────────────────────────────────────
+function buildMysteryPage(){
+  const db=getDB();
+  const mysteries=db.filter(s=>s.type==='myst');
+  const active=mysteries.find(s=>s.status==='featured');
+  const mm=document.getElementById('mysteryThisMonth');
+  const vs=document.getElementById('voteSection');
+
+  if(!active){
+    mm.innerHTML=`<div style="padding:48px 32px;text-align:center;"><span style="font-size:48px;display:block;margin-bottom:16px;opacity:.3">👟</span><p style="font-size:14px;color:var(--text-muted);">No Mystery Mile this month yet.<br>Check back soon — or <button class="btnlnk" onclick="showPage('submit');startJourney('myst')">submit yours</button>!</p></div>`;
+    vs.style.display='none';
+    return;
+  }
+
+  vs.style.display='block';
+  // Header
+  const shoeHTML=active.photo
+    ?`<div class="mtm-shoe-frame"><img src="${active.photo}" alt="Mystery shoe" /></div>`
+    :`<div class="mtm-shoe-frame">👟</div>`;
+
+  mm.innerHTML=`
+    <div class="mtm-header">
+      ${shoeHTML}
+      <div class="mtm-info">
+        <div class="mtm-label">This Month's Mystery Mile · Set #${active.promptSet||'?'}</div>
+        <div class="mtm-title">Who walks in these shoes?</div>
+        <div class="mtm-timer">🗓 Reveal at month's end · Vote below</div>
+      </div>
+    </div>
+    <div class="mtm-clues">
+      ${(active.promptQuestions||['Clue 1','Clue 2','Clue 3']).map((q,i)=>`
+        <div class="mtm-clue">
+          <div class="mtm-clue-num">${i+1}</div>
+          <div>
+            <div class="mtm-clue-q">${q}</div>
+            <div class="mtm-clue-a">${active.answers?.[i]||'—'}</div>
+          </div>
+        </div>`).join('')}
+    </div>`;
+
+  // Vote options: only conventional miles already published (not pending review)
+  const convPeople=db.filter(s=>s.type==='conv'&&(s.status==='featured'||s.status==='archived')).slice(0,8);
+  const vopts=document.getElementById('voteOptions');
+  if(convPeople.length===0){
+    vopts.innerHTML=`<p style="font-size:13px;color:var(--text-muted);grid-column:1/-1">Voting options will appear once Conventional Miles have been submitted.</p>`;
+  } else {
+    const votes=getVotes();
+    const myVote=votes['current_vote'];
+    vopts.innerHTML=convPeople.map(p=>`
+      <div class="vote-option ${myVote===p.id?'selected':''}" onclick="selectVote('${p.id}',this)">
+        <div class="vo-avatar">${roleEmoji(p.role)}</div>
+        <div><div class="vo-name">${p.name}</div><div class="vo-role">${p.role}</div></div>
+      </div>`).join('');
+  }
+
+  buildPastMysteries();
+}
+
+let selectedVoteId=null;
+function selectVote(id,el){
+  document.querySelectorAll('.vote-option').forEach(v=>v.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedVoteId=id;
+}
+
+function castVote(){
+  if(!selectedVoteId){alert('Please select who you think it is!');return;}
+  if(!WamDb.isReady()){alert('Walk a Mile voting is unavailable right now.');return;}
+  void WamDb.castVote(selectedVoteId).then(function(){showVoteResults();}).catch(function(e){alert(e.message||String(e));});
+}
+
+function showVoteResults(){
+  const vr=document.getElementById('voteResults');
+  vr.classList.add('on');
+  const votes=getVotes();
+  const tally=votes.tally||{};
+  const total=Object.values(tally).reduce((a,b)=>a+b,0)||1;
+  const db=getDB();
+  const bars=document.getElementById('vrBars');
+  const sorted=Object.entries(tally).sort((a,b)=>b[1]-a[1]);
+  bars.innerHTML=sorted.map(([id,count])=>{
+    const person=db.find(s=>s.id===id);
+    const pct=Math.round(count/total*100);
+    return `<div class="vr-bar-row">
+      <div class="vr-name"><span>${person?person.name:id}</span><span>${pct}%</span></div>
+      <div class="vr-bar-bg"><div class="vr-bar-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+  document.getElementById('voteBtn').textContent='Update My Vote';
+}
+
+function buildPastMysteries(){
+  const db=getDB();
+  const past=db.filter(s=>s.type==='myst'&&s.status==='archived');
+  const grid=document.getElementById('pastMystGrid');
+  if(!grid)return;
+  if(past.length===0){
+    grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><span class="empty-state-icon">👟</span><p>Past Mystery Milers will appear here after each month's reveal.</p></div>`;
+    return;
+  }
+  grid.innerHTML=past.map(s=>`
+    <div class="pm-card">
+      <div class="pm-shoe">${s.photo?`<img src="${s.photo}" alt="shoe" />`:'👟'}</div>
+      <div class="pm-name">${s.revealedName||'Mystery Miler'}</div>
+      <div class="pm-meta">${new Date(s.submittedAt).toLocaleDateString('en-US',{month:'long',year:'numeric'})}</div>
+    </div>`).join('');
+}
+
+// ── SURVEY DATA ───────────────────────────────────────────────
+const MS={
+  Faculty:[
+    {n:1,ps:[{e:'👀',q:"What do your shoes say about you?"},{e:'🎧',q:"What's usually playing in your ears on the way to work?"},{e:'🌟',q:"What's one thing people would never guess you did before medicine?"}]},
+    {n:2,ps:[{e:'👔',q:"What's something on your work outfit people might recognize?"},{e:'🕶',q:"If your personality were sunglasses, what style — and why?"},{e:'📦',q:"What's something surprising in your locker or call bag?"}]},
+    {n:3,ps:[{e:'🛠',q:"What's one habit people associate with you in the OR?"},{e:'🛫',q:"If you could travel anywhere instantly, where — and why?"},{e:'📖',q:"What quote or phrase secretly guides how you work?"}]},
+    {n:4,ps:[{e:'🥗',q:"What do people most likely see you carrying around the hospital?"},{e:'📺',q:"What's a character you secretly identify with — and why?"},{e:'🧵',q:"What tradition from your family do you carry into your day?"}]},
+    {n:5,ps:[{e:'📣',q:"What phrase do you say that people might hear you repeat?"},{e:'🧩',q:"What small daily ritual keeps you grounded at work?"},{e:'🎉',q:"What do you quietly celebrate that no one else notices?"}]}
+  ],
+  CRNA:[
+    {n:1,ps:[{e:'🩺',q:"What do patients or surgeons often notice about you?"},{e:'🧘',q:"When in the OR do you feel most at peace or alert?"},{e:'🎭',q:"What do you do daily that feels like a hidden superpower?"}]},
+    {n:2,ps:[{e:'👟',q:"What shoes do you wear on your longest days — and why?"},{e:'🎯',q:"What keeps you calm during high-stakes cases?"},{e:'📘',q:"What's the story behind how you found nurse anesthesia?"}]},
+    {n:3,ps:[{e:'👓',q:"What gear or style do people associate with you at work?"},{e:'📢',q:"What do you wish colleagues knew about CRNA life?"},{e:'🌄',q:"What non-medical passion keeps you balanced?"}]},
+    {n:4,ps:[{e:'📋',q:"What phrase or tool do people see you using in every shift?"},{e:'🧵',q:"What lesson from nursing school still sticks with you?"},{e:'📺',q:"If your day had a TV title, what would it be?"}]},
+    {n:5,ps:[{e:'☕',q:"What's always in your hand during morning report?"},{e:'🌱',q:"What part of your identity outside work surprises people?"},{e:'💬',q:"What do you say to yourself when no one else is around?"}]}
+  ],
+  'Resident/Fellow':[
+    {n:1,ps:[{e:'📓',q:"What's something on or inside your locker?"},{e:'🔄',q:"What ritual helps you survive 24-hour call?"},{e:'🤐',q:"What did you learn the hard way in your first few months?"}]},
+    {n:2,ps:[{e:'💉',q:"What do you always keep in your pocket?"},{e:'🧠',q:"What concept finally 'clicked' after weeks of struggling?"},{e:'🧩',q:"What's a surprising way you recharge between cases?"}]},
+    {n:3,ps:[{e:'🎧',q:"What's your go-to music or podcast during pre-rounds?"},{e:'🪞',q:"What insecurity have you learned to laugh at?"},{e:'📬',q:"What's the kindest feedback you've received so far?"}]},
+    {n:4,ps:[{e:'🚪',q:"What do people see when you walk into a room?"},{e:'🔍',q:"What skill are you quietly trying to master this year?"},{e:'✍️',q:"What note or mantra do you keep with you?"}]},
+    {n:5,ps:[{e:'👕',q:"What's your favorite call shirt or lucky shoes?"},{e:'🗺',q:"What detour on your path to anesthesia shaped you?"},{e:'🎢',q:"What moment made you question — but ultimately affirm — your calling?"}]}
+  ],
+  'Research Staff':[
+    {n:1,ps:[{e:'🔬',q:"What in your workspace reflects your personality?"},{e:'📚',q:"What research rabbit hole have you loved getting lost in?"},{e:'👩‍🔬',q:"If your experiment were a movie, what genre — and why?"}]},
+    {n:2,ps:[{e:'📊',q:"What chart or gadget is always at your desk?"},{e:'🧠',q:"What's a misconception people have about your work?"},{e:'🎓',q:"What did you believe about research that you no longer do?"}]},
+    {n:3,ps:[{e:'👟',q:"What's your go-to footwear in the lab?"},{e:'📖',q:"What literature influenced your thinking most?"},{e:'🧬',q:"If your research had a soundtrack, what's on it?"}]},
+    {n:4,ps:[{e:'📎',q:"What's always pinned to your wall or whiteboard?"},{e:'💥',q:"What's the most surprising twist in your research journey?"},{e:'🧳',q:"If you took your research abroad, where and why?"}]},
+    {n:5,ps:[{e:'🧪',q:"What quirky lab habit have you picked up?"},{e:'🚧',q:"What's something in your work constantly under construction?"},{e:'🧩',q:"What's the weirdest fact your research has uncovered?"}]}
+  ],
+  'Administrative Staff':[
+    {n:1,ps:[{e:'📋',q:"What's always on your desk or office door?"},{e:'📞',q:"What conversation stuck with you this year?"},{e:'🧭',q:"What principle quietly guides your decisions?"}]},
+    {n:2,ps:[{e:'🖼',q:"What in your office would coworkers recognize instantly?"},{e:'🎙',q:"If you gave a TED Talk from this role, what would it be?"},{e:'💡',q:"What small idea made a big impact in your workflow?"}]},
+    {n:3,ps:[{e:'📆',q:"What daily routine is visible but totally misunderstood?"},{e:'🥽',q:"What have you mastered that people don't realize takes skill?"},{e:'🌿',q:"What practice or boundary keeps you in perspective?"}]},
+    {n:4,ps:[{e:'🧺',q:"What object between meetings might others recognize?"},{e:'📣',q:"What mantra do you say in tough moments?"},{e:'🔧',q:"What do you quietly fix that no one sees?"}]},
+    {n:5,ps:[{e:'🧾',q:"What quirky system keeps you sane?"},{e:'💬',q:"What feedback loop changed how you communicate?"},{e:'⏳',q:"What would people be surprised to know takes most of your time?"}]}
+  ]
+};
+MS['Other']=MS['Faculty'];
+function getMSets(r){return MS[r]||MS['Faculty'];}
+
+const WT={
+  Faculty:{
+    '👟 Professional Identity & Career':[
+      {t:'Walk a Mile in My Workflow — A Day in the OR',qs:["What's one thing people assume about your OR day that's not true?","What does a perfect OR day look like for you?","What's the quiet rhythm or chaos others don't always notice?"]},
+      {t:"The Call I'll Never Forget",qs:["What happened that made this call unforgettable?","How did you handle the pressure in the moment?","What did it teach you about who you are under stress?"]},
+      {t:'The Day I Knew I Belonged',qs:["What happened that made you feel really part of this field?","Who welcomed or affirmed you in that moment?","How has that shaped the way you support others?"]},
+      {t:'I Used to Think…',qs:["What belief about this career do you no longer agree with?","What changed your mind?","What do you wish more people in our field understood?"]},
+      {t:'I Almost Chose Something Else',qs:["What other path were you seriously considering?","What drew you to that alternative?","What made you stay on this path instead?"]}
+    ],
+    '🧬 Work-Life Realities':[
+      {t:'Walk a Mile in My Morning',qs:["What's your routine before most people are awake?","How do you balance family prep with professional demands?","What's something chaotic or meaningful that happens before work?"]},
+      {t:'What I Hide Behind My ID Badge',qs:["What part of you doesn't usually show up at work?","Why has that stayed hidden?","How would knowing that change how people treat you?"]},
+      {t:'My Calendar vs. My Life',qs:["What's on your calendar that doesn't reflect your real priorities?","Where do you find unscheduled joy?","What would your calendar say if it told the truth?"]},
+      {t:'Hidden Talents',qs:["What skill rarely comes up at work?","Have you ever surprised a colleague with it?","How does it connect to how you show up at work?"]}
+    ],
+    '🌍 Perspective & Personality':[
+      {t:'Global Mile — Walk a Mile in My Story',qs:["Where did your journey to medicine begin?","What cultural value do you carry into your work?","How has your global identity shaped your perspective on teams?"]},
+      {t:'The Assumption Everyone Makes',qs:["What do people assume based on how you look or speak?","When did that assumption work against you?","How do you correct it?"]},
+      {t:'Legacy Mile',qs:["What moments mattered most in your career here?","How do you see the field differently now?","What legacy do you hope you're leaving?"]},
+      {t:'My Accent, My Story',qs:["How does your accent shape how people perceive you?","Have you felt pride or pressure around how you speak?","What story does your voice carry?"]}
+    ],
+    '🎒 Training & Growth':[
+      {t:'The Feedback That Stuck',qs:["What feedback did you not want to hear — but needed to?","How has it echoed in your practice?","Who gave it, and why do you remember it?"]},
+      {t:"The Teaching Moment I'll Never Forget",qs:["Who taught you something unforgettable?","Was it what they said or how they said it?","How do you pass that moment forward?"]},
+      {t:'When I Realized I Was a Teacher',qs:["What moment made you feel like an educator?","Who was your first student?","How do you define a 'good teacher' today?"]}
+    ]
+  },
+  'Resident/Fellow':{
+    '👟 Professional Identity':[
+      {t:'My First Day, My First Case',qs:["What were you most nervous about during your first case?","What detail from that day still sticks?","How did it shape your expectations?"]},
+      {t:'OR Impostor Syndrome',qs:["When did you doubt you belonged — and how did you push through?","What moment built your confidence?","What does 'competence' look like to you now?"]},
+      {t:'The Procedure I Feared (Then Mastered)',qs:["What task once scared you?","How did you learn it?","What advice would you give someone struggling with it now?"]}
+    ],
+    '🧬 Work-Life Realities':[
+      {t:'Call Night Chronicles',qs:["What's the funniest or strangest thing during call?","How do you mentally survive long stretches?","What's your go-to post-call ritual?"]},
+      {t:'Balancing Boards & Life',qs:["How do you juggle studying with life outside?","What's fallen through the cracks?","What motivates you during burnout?"]},
+      {t:'Paycheck Priorities',qs:["What was the first thing you bought with your resident paycheck?","What money lesson are you learning?","How do you budget joy on a resident salary?"]}
+    ],
+    '🌍 Perspective & Personality':[
+      {t:'From My Hometown to the Hospital',qs:["How does where you're from show up in your practice?","What do you miss most about home?","What tradition from your upbringing do you still hold?"]},
+      {t:"That Time I Got Called 'Doctor'",qs:["When did it first hit you that you're a physician?","How did you feel hearing it from a patient?","What does the title mean to you now?"]},
+      {t:"What's In My White Coat",qs:["What unusual item do you carry?","Why is it important to you?","Has anyone ever asked about it?"]}
+    ],
+    '🎒 Training & Growth':[
+      {t:'My First Airway',qs:["What did it feel like holding the laryngoscope the first time?","What went wrong — or right?","How did your team support (or terrify) you?"]},
+      {t:'The Feedback I Still Think About',qs:["What feedback stuck — good or bad?","Who gave it and why did it matter?","How has it shaped your approach?"]},
+      {t:'Residency Bucket List',qs:["What do you want to experience before you graduate?","Why does it matter?","What will it mean to check it off?"]}
+    ]
+  },
+  'Administrative Staff':{
+    '👟 Professional Identity':[
+      {t:'Behind the Calendar',qs:["What's something people misunderstand about your schedule?","What do you actually spend the most time doing?","How do you manage conflicting demands?"]},
+      {t:'My First Leadership Challenge',qs:["What was your first time leading a major project?","What did you get wrong — and right?","How did that shape how you lead today?"]}
+    ],
+    '🧬 Work-Life Realities':[
+      {t:'Office After Hours',qs:["What's surprising about your after-hours self?","How do you actually 'clock out'?","What hobby or ritual keeps you sane?"]},
+      {t:'Meeting Mile',qs:["What makes a meeting energizing versus draining?","What's your strategy when it goes sideways?","How do you handle being the only admin in the room?"]}
+    ],
+    '🌍 Perspective & Personality':[
+      {t:'Walking with Impostor Syndrome',qs:["When have you doubted you belonged?","What helped you push through?","How do you support others who feel the same?"]},
+      {t:'Culture Carriers',qs:["What routines define the department's culture?","How do you reinforce them daily?","What happens when the culture drifts?"]}
+    ],
+    '🎒 Training & Growth':[
+      {t:'Feedback That Changed My Approach',qs:["What comment made you rethink how you lead?","How did you initially take it?","What lasting effect has it had?"]},
+      {t:'From Support to Strategy',qs:["When did you stop being seen as just support?","How did your responsibilities shift?","What do you still battle in terms of perception?"]}
+    ]
+  },
+  'Research Staff':{
+    '🔬 Lab Life & Research Identity':[
+      {t:'The Hypothesis That Hooked Me',qs:["What question first made you feel like a scientist?","What was your 'aha' moment in the lab?","How has your research identity evolved?"]},
+      {t:'Lab Lessons From Failure',qs:["What experiment failed spectacularly but taught you something vital?","How did you troubleshoot through it?","What would you tell someone new about resilience?"]},
+      {t:'My First Poster Session',qs:["What went right (or wrong) at your first conference poster?","What conversations stuck?","What advice would you give someone now?"]}
+    ],
+    '📆 Work-Life & Career':[
+      {t:'The Mentor Who Saved My Sanity',qs:["Who gave advice that truly helped you stay on track?","What made them different?","How has that shaped how you mentor others?"]},
+      {t:'A Mile in My Workspace',qs:["What's something quirky or meaningful in your workspace?","What does your desk setup say about you?","Who do you share space with, and what's that dynamic?"]}
+    ],
+    '🌍 Perspective & Purpose':[
+      {t:'Why I Still Believe in Science',qs:["What keeps you motivated during long projects?","Have you ever doubted your path?","What truth have you uncovered that's worth the effort?"]},
+      {t:'My Origin Story',qs:["Where did your interest in science begin?","Who believed in you before you had results?","What unexpected step brought you here?"]}
+    ],
+    '📈 Growth & Learning':[
+      {t:'Learning From the Next Generation',qs:["What have students or interns taught you recently?","How has mentoring changed your view of learning?","What keeps you hopeful about the future of research?"]},
+      {t:'The Grant That Got Away',qs:["What grant did you want — and not get?","How did you regroup?","What did the rejection not understand about your idea?"]}
+    ]
+  }
+};
+WT['CRNA']=WT['Faculty']; WT['Other']=WT['Faculty'];
+function getThemes(r){return WT[r]||WT['Faculty'];}
+
+// ── SURVEY STATE ──────────────────────────────────────────────
+let cRole='',cThemeData=null,cSelTheme=null;
+let mRole='',mSet=null,photoDataURL=null;
+
+function resetToFork(){
+  document.getElementById('sv-fork').classList.add('on');
+  document.getElementById('sv-conv').style.display='none';
+  document.getElementById('sv-myst').style.display='none';
+  cRole=''; cThemeData=null; cSelTheme=null;
+  mRole=''; mSet=null; photoDataURL=null;
+  clearPhotoState();
+  setProg(5);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function startJourney(type){
+  document.getElementById('sv-fork').classList.remove('on');
+  if(type==='conv'){
+    document.getElementById('sv-conv').style.display='block';
+    document.getElementById('sv-myst').style.display='none';
+    resetCards('c'); setCS(1);
+  } else {
+    document.getElementById('sv-myst').style.display='block';
+    document.getElementById('sv-conv').style.display='none';
+    resetCards('m'); setMS(1);
+    clearPhotoState();
+  }
+}
+
+function resetCards(p){
+  const containerId=(p==='c'||p==='conv')?'sv-conv':'sv-myst';
+  document.querySelectorAll('#'+containerId+' .scard').forEach(c=>c.classList.remove('on'));
+}
+
+// Conventional
+function setCS(n){
+  document.querySelectorAll('#sv-conv .scard').forEach(c=>c.classList.remove('on'));
+  document.getElementById('c'+n).classList.add('on');
+  for(let i=0;i<3;i++){const d=document.getElementById('cd'+i);d.classList.remove('on','done');if(i+1<n)d.classList.add('done');else if(i+1===n)d.classList.add('on');}
+  document.getElementById('cLbl').textContent='Step '+n+' of 3';
+  setProg(5+((n-1)/3)*80);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function curCS(){const cs=document.querySelectorAll('#sv-conv .scard');for(let i=0;i<cs.length;i++)if(cs[i].classList.contains('on'))return i+1;return 1;}
+function cGo(n){
+  const c=curCS();
+  if(n>c){
+    if(c===1){if(!document.getElementById('cName').value.trim()){alert('Please enter your name.');return;}if(!document.getElementById('cCampus').value){alert('Please select your campus.');return;}if(!cRole){alert('Please select your role.');return;}}
+    if(c===2&&!cSelTheme){alert('Please select a theme.');return;}
+    if(n===2)buildCT();
+    if(n===3)buildCS();
+  }
+  setCS(n);
+}
+function buildCT(){
+  const themes=getThemes(cRole),c=document.getElementById('cTC');
+  c.innerHTML=''; cSelTheme=null;
+  Object.entries(themes).forEach(([cat,items])=>{
+    const icon=cat.split(' ')[0],name=cat.substring(icon.length+1);
+    let h=`<div class="tcat"><div class="tcat-hdr"><span class="tcat-icon">${icon}</span><span class="tcat-name">${name}</span></div><div class="tgrid">`;
+    items.forEach((t,i)=>{h+=`<div class="tcard" onclick="pickT(this,'${cat.replace(/'/g,"\\'")}',${i})"><div class="tcard-h">${t.t}</div><div class="tcard-p">${t.qs[0].substring(0,52)}…</div></div>`;});
+    h+=`</div></div>`;c.innerHTML+=h;
+  });
+}
+function pickT(el,cat,idx){
+  document.querySelectorAll('#cTC .tcard').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');cSelTheme={cat,idx};cThemeData=getThemes(cRole)[cat][idx];
+}
+function buildCS(){
+  if(!cThemeData)return;
+  const p=document.getElementById('cSP');
+  p.innerHTML=`<div class="story-hdr"><div class="story-badge">Your Theme</div><div class="story-ttl">${cThemeData.t}</div></div>`;
+  cThemeData.qs.forEach((q,i)=>{p.innerHTML+=`<div class="fg"><div class="sq-num">Question ${i+1} of 3</div><label class="fl">${q}</label><textarea class="ft" id="cA${i}" placeholder="Take your time…" style="min-height:128px"></textarea></div>`;});
+}
+async function submitConv(){
+  if(_submitBusy)return;
+  if(!WamDb.isReady()){
+    showSubmitErr('Walk a Mile could not reach the submission service. Check your connection or site configuration.');
+    alert('Walk a Mile could not save right now. Check your connection or site configuration.');
+    return;
+  }
+  const name=document.getElementById('cName').value.trim();
+  clearSubmitErr();
+  setSubmitBusy(true);
+  try{
+    await addSubmissionWithTimeout({
+      type:'conv',name,
+      campus:document.getElementById('cCampus').value,
+      role:cRole,theme:cThemeData?.t,
+      questions:cThemeData?.qs,
+      answers:[0,1,2].map(i=>document.getElementById('cA'+i)?.value||'')
+    });
+    showSuccess('conv',name,cThemeData?.t||'');
+    scheduleResetWizardAfterSuccess();
+  }catch(e){
+    showSubmitErr(e.message||String(e));
+    alert(e.message||String(e));
+  }finally{
+    setSubmitBusy(false);
+  }
+}
+
+// Mystery
+function setMS(n){
+  document.querySelectorAll('#sv-myst .scard').forEach(c=>c.classList.remove('on'));
+  document.getElementById('m'+n).classList.add('on');
+  for(let i=0;i<3;i++){const d=document.getElementById('md'+i);d.classList.remove('on','done');if(i+1<n)d.classList.add('done');else if(i+1===n)d.classList.add('on');}
+  document.getElementById('mLbl').textContent='Step '+n+' of 3';
+  setProg(5+((n-1)/3)*80);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function curMS(){const cs=document.querySelectorAll('#sv-myst .scard');for(let i=0;i<cs.length;i++)if(cs[i].classList.contains('on'))return i+1;return 1;}
+function mGo(n){
+  const c=curMS();
+  if(n>c){
+    if(c===1){if(!document.getElementById('mName').value.trim()){alert('Please enter your name.');return;}if(!document.getElementById('mCampus').value){alert('Please select your campus.');return;}if(!mRole){alert('Please select your role.');return;}}
+    if(c===2&&mSet===null){alert('Please choose a prompt set.');return;}
+    if(c===3&&!photoDataURL){alert('Please upload your shoe photo.');return;}
+    if(n===2)buildMSets();
+    if(n===3)buildMAnswers();
+  }
+  setMS(n);
+}
+function buildMSets(){
+  const sets=getMSets(mRole),g=document.getElementById('mPG');
+  g.innerHTML='';mSet=null;
+  sets.forEach((set,idx)=>{
+    const card=document.createElement('div');card.className='pscard';
+    card.innerHTML=`<div class="ps-hdr"><div class="ps-num">${set.n}</div><div class="ps-ttl">Mystery Set #${set.n}</div></div><div>${set.ps.map(p=>`<div class="pq"><span>${p.e}</span> ${p.q}</div>`).join('')}</div>`;
+    card.onclick=()=>{document.querySelectorAll('#mPG .pscard').forEach(c=>c.classList.remove('sel'));card.classList.add('sel');mSet=idx;};
+    g.appendChild(card);
+  });
+}
+function buildMAnswers(){
+  const set=getMSets(mRole)[mSet],p=document.getElementById('mAP');
+  p.innerHTML=`<div class="story-hdr"><div class="story-badge">Set #${set.n}</div><div class="story-ttl">Your Anonymous Clues</div></div>`;
+  set.ps.forEach((pr,i)=>{p.innerHTML+=`<div class="fg"><div class="sq-num">Clue ${i+1} of 3</div><label class="fl">${pr.e} ${pr.q}</label><textarea class="ft" id="mA${i}" placeholder="Write your answer here…"></textarea></div>`;});
+}
+async function submitMyst(){
+  if(_submitBusy)return;
+  if(!WamDb.isReady()){
+    showSubmitErr('Walk a Mile could not reach the submission service. Check your connection or site configuration.');
+    alert('Walk a Mile could not save right now. Check your connection or site configuration.');
+    return;
+  }
+  if(!photoDataURL){alert('Please upload your shoe photo.');return;}
+  clearSubmitErr();
+  setSubmitBusy(true);
+  try{
+    const set=getMSets(mRole)[mSet];
+    await addSubmissionWithTimeout({
+      type:'myst',
+      name:document.getElementById('mName').value.trim(),
+      campus:document.getElementById('mCampus').value,
+      role:mRole,promptSet:set.n,
+      promptQuestions:set.ps.map(p=>p.q),
+      photo:photoDataURL,
+      answers:[0,1,2].map(i=>document.getElementById('mA'+i)?.value||'')
+    });
+    showSuccess('myst','',`Mystery Set #${set.n}`);
+    scheduleResetWizardAfterSuccess();
+  }catch(e){
+    showSubmitErr(e.message||String(e));
+    alert(e.message||String(e));
+  }finally{
+    setSubmitBusy(false);
+  }
+}
+
+// Photo upload
+function handlePhoto(e){const f=e.target.files[0];if(f)loadPhoto(f);}
+function dzOver(e){e.preventDefault();document.getElementById('photoZone').classList.add('drag');}
+function dzLeave(e){document.getElementById('photoZone').classList.remove('drag');}
+function dzDrop(e){e.preventDefault();document.getElementById('photoZone').classList.remove('drag');const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/'))loadPhoto(f);}
+function loadPhoto(f){
+  const r=new FileReader();
+  r.onload=ev=>{
+    photoDataURL=ev.target.result;
+    const prev=document.getElementById('photoPreview');
+    prev.src=photoDataURL;prev.style.display='block';
+    document.getElementById('photoPlaceholder').style.display='none';
+    document.getElementById('photoClear').classList.add('vis');
+    document.getElementById('photoZone').classList.add('has-img');
+  };
+  r.readAsDataURL(f);
+}
+function clearPhoto(e){e.stopPropagation();clearPhotoState();}
+function clearPhotoState(){
+  photoDataURL=null;
+  const prev=document.getElementById('photoPreview');
+  if(prev){prev.style.display='none';prev.src='';}
+  const ph=document.getElementById('photoPlaceholder');if(ph)ph.style.display='block';
+  const cl=document.getElementById('photoClear');if(cl)cl.classList.remove('vis');
+  const z=document.getElementById('photoZone');if(z)z.classList.remove('has-img');
+  const inp=document.getElementById('photoInput');if(inp)inp.value='';
+}
+
+// Role select
+function selR(p,el,role){
+  document.querySelectorAll('#'+p+'RG .rcard').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+  if(p==='c'){cRole=role;document.getElementById('cOW').classList.toggle('vis',role==='Other');}
+  else{mRole=role;document.getElementById('mOW').classList.toggle('vis',role==='Other');}
+}
+
+// ── SUCCESS ───────────────────────────────────────────────────
+const themeMessages={
+  "Walk a Mile in My Workflow — A Day in the OR":"Behind every perfect OR day is a story no one else sees. Now they will.",
+  "The Call I'll Never Forget":"Some cases stay with us forever. Thank you for letting others walk with you.",
+  "The Day I Knew I Belonged":"Belonging matters. Your story might be exactly what someone else needs to hear.",
+  "I Used to Think…":"Changing our minds is one of the bravest things we do.",
+  "Hidden Talents":"We had no idea. Now we do — and we love it.",
+  "My First Airway":"The first laryngoscope. Nobody forgets that moment.",
+  "Call Night Chronicles":"Call nights are their own universe. Honored you shared yours.",
+  "The Hypothesis That Hooked Me":"Every great discovery starts with one irresistible question.",
+  default:"Your story has been received. Thank you for walking this mile with us."
+};
+
+function showSuccess(type,name,theme){
+  setProg(100);
+  const isConv=type==='conv';
+  document.getElementById('sIcon').textContent=isConv?'📖':'👟';
+  document.getElementById('sJBadge').textContent=(isConv?'📖 Conventional Mile':'👟 Mystery Mile')+' · Submitted ✓';
+  document.getElementById('stcLabel').textContent=isConv?'Your Theme':'Your Prompt Set';
+  document.getElementById('stcName').textContent=isConv?theme:'Mystery Mile · '+theme;
+  document.getElementById('stcMsg').textContent=themeMessages[theme]||themeMessages.default;
+  document.getElementById('sSub').textContent=isConv
+    ?(name?`Thank you, ${name}. `:'')+'Your submission will be reviewed and you\'ll be notified when your feature is scheduled.'
+    :'Your clues are in. The mystery feature drops at the start of next month — can your colleagues figure out who you are?';
+  document.getElementById('succScreen').classList.add('on');
+  setTimeout(()=>launchConfetti(isConv),300);
+}
+
+function closeSuccess(){
+  document.getElementById('succScreen').classList.remove('on');
+  showPage('hub');
+}
+
+// ── CONFETTI ──────────────────────────────────────────────────
+function launchConfetti(isConv){
+  const canvas=document.getElementById('confettiCanvas');
+  canvas.width=window.innerWidth;canvas.height=window.innerHeight;
+  const ctx=canvas.getContext('2d');
+  const colors=isConv
+    ?['#00356B','#004C97','#C9A84C','#E8C882','#ffffff','#9EC3E8']
+    :['#C9A84C','#E8C882','#F9F6F0','#00356B','#FFD700','#FFF8E1'];
+  const pieces=Array.from({length:160},()=>({
+    x:Math.random()*canvas.width,y:-20-Math.random()*180,
+    w:5+Math.random()*10,h:4+Math.random()*8,
+    color:colors[Math.floor(Math.random()*colors.length)],
+    shape:['rect','circle','star'][Math.floor(Math.random()*3)],
+    rot:Math.random()*Math.PI*2,
+    vx:(Math.random()-.5)*4,vy:2+Math.random()*4,vr:(Math.random()-.5)*.2,
+    opacity:1
+  }));
+  let frame=0;
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    let alive=false;
+    pieces.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr;p.vy+=.06;
+      if(p.y>canvas.height*.8)p.opacity-=.035;
+      if(p.opacity<=0)return;
+      alive=true;
+      ctx.save();ctx.globalAlpha=p.opacity;ctx.fillStyle=p.color;
+      ctx.translate(p.x,p.y);ctx.rotate(p.rot);
+      if(p.shape==='rect')ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+      else if(p.shape==='circle'){ctx.beginPath();ctx.arc(0,0,p.w/2,0,Math.PI*2);ctx.fill();}
+      else{
+        ctx.beginPath();
+        for(let s=0;s<5;s++){const a=s*Math.PI*2/5-Math.PI/2,ai=a+Math.PI/5;ctx.lineTo(Math.cos(a)*p.w,Math.sin(a)*p.w);ctx.lineTo(Math.cos(ai)*p.w*.4,Math.sin(ai)*p.w*.4);}
+        ctx.closePath();ctx.fill();
+      }
+      ctx.restore();
+    });
+    frame++;
+    if(alive&&frame<400)requestAnimationFrame(draw);
+    else ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+  draw();
+}
+
+// ── FOOTPRINT ANIMATION ───────────────────────────────────────
+(function(){
+  const canvas=document.getElementById('footCanvas');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  let W,H,time=0,lastSpawn=0;
+  const prints=[];
+  function resize(){W=canvas.width=canvas.offsetWidth;H=canvas.height=canvas.offsetHeight;}
+  resize();
+  new ResizeObserver(resize).observe(canvas);
+
+  function drawPrint(ctx,x,y,sc,rot,op,mirror){
+    ctx.save();ctx.globalAlpha=op;ctx.translate(x,y);ctx.rotate(rot);
+    if(mirror)ctx.scale(-1,1);ctx.scale(sc,sc);
+    ctx.fillStyle='rgba(201,168,76,0.22)';
+    ctx.beginPath();ctx.ellipse(0,14,9,7,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(3,4,5,8,-.2,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(0,-8,8,6,0,0,Math.PI*2);ctx.fill();
+    [{x:-6,y:-17,r:3.5},{x:-2.5,y:-19.5,r:3},{x:1.5,y:-20,r:3.2},{x:5.5,y:-19,r:3},{x:8.5,y:-17,r:2.6}]
+      .forEach(t=>{ctx.beginPath();ctx.arc(t.x,t.y,t.r,0,Math.PI*2);ctx.fill();});
+    ctx.restore();
+  }
+
+  function spawn(){
+    const xC=W*.42+Math.sin(time*.009)*W*.14;
+    const isL=Math.floor(time/50)%2===0;
+    prints.push({x:xC+(isL?-20:20),y:H+30,rot:(isL?-.1:.1),mirror:isL,opacity:0,age:0,sc:.8+Math.random()*.25});
+  }
+
+  function tick(){
+    if(document.getElementById('page-hub').classList.contains('on')){
+      ctx.clearRect(0,0,W,H);
+      time++;
+      if(time-lastSpawn>50){spawn();lastSpawn=time;}
+      prints.forEach(p=>{
+        p.y-=1.0;p.age++;
+        if(p.age<18)p.opacity=Math.min(.6,p.opacity+.033);
+        else if(p.y<H*.35)p.opacity=Math.max(0,p.opacity-.007);
+        if(p.opacity>0)drawPrint(ctx,p.x,p.y,p.sc,p.rot,p.opacity,p.mirror);
+      });
+      for(let i=prints.length-1;i>=0;i--)if(prints[i].opacity<=0&&prints[i].y<0)prints.splice(i,1);
+    }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+
+// ── BOOT ─────────────────────────────────────────────────────
+window.addEventListener('wam-db-refresh', function () {
+  refreshAll();
+});
+
+(async function boot() {
+  await WamDb.init();
+  try {
+    if (WamDb.isReady()) {
+      await WamDb.syncAll();
+    }
+  } catch (e) {
+    console.error(e);
+  }
+  refreshAll();
+})();
+</script>
+</body>
+</html>

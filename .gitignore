@@ -1,0 +1,7 @@
+# Local Supabase client config (copy from js/supabase-config.example.js)
+js/supabase-config.js
+
+.DS_Store
+.env
+.env.*
+*.log

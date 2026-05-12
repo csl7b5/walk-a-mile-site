@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Walk a Mile — Admin</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2300356B'/%3E%3Ctext x='16' y='22' text-anchor='middle' fill='%23C9A84C' font-size='18' font-family='Georgia,serif' font-weight='bold'%3EY%3C/text%3E%3C/svg%3E" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --navy:#00356B; --navy-deep:#001628; --navy-mid:#004C97; --navy-light:#E8F0FB;
+  --gold:#C9A84C; --gold-light:#E8C882; --gold-pale:rgba(201,168,76,.1);
+  --cream:#F9F6F0; --white:#FFFFFF;
+  --green:#2E7D32; --green-light:#E8F5E9;
+  --red:#C62828; --red-light:#FFEBEE;
+  --amber:#F57F17; --amber-light:#FFF8E1;
+  --text-dark:#0f1e30; --text-mid:#3d4a5c; --text-muted:#8a99aa;
+  --border:rgba(0,53,107,.11); --border-gold:rgba(201,168,76,.28);
+  --shadow:0 4px 24px rgba(0,53,107,.1); --shadow-md:0 8px 40px rgba(0,53,107,.14);
+  --r:14px; --r-sm:8px; --r-lg:20px; --r-xl:28px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text-dark);min-height:100vh;}
+
+.topnav{position:fixed;top:0;left:0;right:0;z-index:299;background:var(--navy-deep);height:54px;display:flex;align-items:center;padding:0 20px 0 28px;gap:16px;border-bottom:1px solid rgba(255,255,255,.06);}
+.tn-brand{display:flex;align-items:center;gap:11px;text-decoration:none;color:inherit;}
+.tn-y{width:28px;height:28px;background:var(--gold);border-radius:5px;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-weight:700;color:var(--navy-deep);font-size:15px;}
+.tn-name{font-family:'Cormorant Garamond',serif;font-size:16px;color:rgba(255,255,255,.88);font-style:italic;}
+.tn-back{margin-left:auto;font-size:12px;font-weight:600;color:rgba(255,255,255,.6);text-decoration:none;letter-spacing:.06em;text-transform:uppercase;}
+.tn-back:hover{color:var(--gold-light);}
+
+#page-admin{display:flex;flex-direction:column;min-height:calc(100vh - 54px);margin-top:54px;}
+#page-admin:not(.admin-logged-in){max-height:calc(100vh - 54px);overflow:hidden;}
+#page-admin:not(.admin-logged-in) .admin-login-shell{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+
+.admin-header{display:none;background:white;border-bottom:1.5px solid var(--border);padding:24px 40px;align-items:center;justify-content:space-between;flex-shrink:0;}
+.admin-header.admin-header-visible{display:flex;}
+.admin-header-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.admin-header h1{font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--navy-deep);font-weight:600;}
+.admin-header p{font-size:12px;color:var(--text-muted);margin-top:2px;}
+.admin-stats{background:var(--navy-light);border-bottom:1.5px solid var(--border);padding:16px 40px;display:grid;grid-template-columns:repeat(5,1fr);gap:0;}
+.as-item{text-align:center;border-right:1.5px solid rgba(0,53,107,.12);padding:8px 0;}
+.as-item:last-child{border-right:none;}
+.as-num{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:var(--navy);line-height:1;}
+.as-lbl{font-size:10px;color:var(--text-muted);margin-top:2px;}
+.admin-tabs{background:white;border-bottom:1.5px solid var(--border);padding:0 40px;display:flex;gap:0;flex-wrap:wrap;}
+.admin-tab{padding:14px 20px;font-size:12.5px;font-weight:500;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;display:flex;align-items:center;gap:7px;}
+.admin-tab:hover{color:var(--navy);}
+.admin-tab.act{color:var(--navy);border-bottom-color:var(--navy);}
+.admin-tab-badge{background:var(--navy);color:white;font-size:9px;font-weight:700;padding:2px 7px;border-radius:100px;font-family:'DM Mono',monospace;}
+.admin-tab-badge.gold{background:var(--gold);color:var(--navy-deep);}
+.admin-content{padding:32px 40px;max-width:none;flex:1;}
+.admin-panel{display:none;}
+.admin-panel.on{display:block;}
+
+#adminDashboardBody{display:none !important;flex-direction:column;flex:1;min-height:0;}
+#adminDashboardBody.admin-dashboard-visible{display:flex !important;flex-direction:column;}
+
+.admin-login-shell{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px 48px;}
+.admin-auth-card{width:100%;max-width:420px;background:var(--white);border-radius:var(--r-xl);border:1.5px solid var(--border);box-shadow:var(--shadow-md);padding:32px 36px 36px;}
+.admin-auth-card .admin-login-kicker{text-align:center;margin-bottom:8px;}
+.admin-login-h2{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:var(--navy-deep);text-align:center;margin-bottom:6px;line-height:1.2;}
+.admin-login-sub{font-size:12.5px;color:var(--text-muted);text-align:center;line-height:1.5;margin-bottom:22px;}
+.admin-auth-status{font-size:13px;color:var(--text-muted);padding:0 0 14px;text-align:center;}
+.admin-auth-box{display:flex;flex-direction:column;gap:14px;align-items:stretch;padding:0;background:transparent;border:none;}
+.admin-auth-box .fg{width:100%;}
+.admin-auth-box input.fi{max-width:none;width:100%;}
+.admin-auth-box .btn{width:100%;justify-content:center;}
+#adminAuthErr{font-size:12px;color:var(--red);text-align:center;}
+
+.fg{margin-bottom:0;}
+.fl{display:block;font-size:12px;font-weight:600;color:var(--navy);margin-bottom:7px;}
+.fi{width:100%;padding:12px 16px;border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text-dark);background:white;outline:none;}
+.fi:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(0,53,107,.08);}
+
+.btn{display:inline-flex;align-items:center;gap:8px;justify-content:center;background:var(--navy);color:white;border:none;padding:12px 26px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .22s;}
+.btn:hover{background:var(--navy-mid);}
+.btn-sm{padding:8px 18px;font-size:12px;}
+.btn-gold{background:var(--gold);color:var(--navy-deep);}
+.btn-gold:hover{background:var(--gold-light);}
+.btn-ghost{background:transparent;color:var(--navy);border:1.5px solid var(--border);}
+.btn-ghost:hover{border-color:var(--navy);background:rgba(0,53,107,.04);}
+
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:3px 10px;border-radius:100px;}
+.chip-navy{background:var(--navy-light);color:var(--navy);}
+.chip-gold{background:var(--gold-pale);color:#8a6200;}
+.chip-green{background:var(--green-light);color:var(--green);}
+.chip-red{background:var(--red-light);color:var(--red);}
+.chip-amber{background:var(--amber-light);color:var(--amber);}
+.chip-gray{background:rgba(0,0,0,.06);color:var(--text-muted);}
+.section-eye{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:10px;}
+.empty-state{text-align:center;padding:64px 24px;color:var(--text-muted);}
+.empty-state-icon{font-size:48px;margin-bottom:16px;display:block;opacity:.4;}
+.empty-state p{font-size:14px;line-height:1.6;}
+
+.sub-table{width:100%;border-collapse:collapse;background:white;border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow);border:1.5px solid var(--border);}
+.sub-table th{background:var(--navy-deep);color:rgba(255,255,255,.7);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:12px 16px;text-align:left;font-weight:600;}
+.sub-table td{padding:14px 16px;border-bottom:1.5px solid var(--border);font-size:13px;vertical-align:middle;}
+.sub-table tr:last-child td{border-bottom:none;}
+.sub-table tr:hover td{background:rgba(0,53,107,.02);}
+.td-name{font-weight:600;color:var(--navy);}
+.td-theme{font-size:11.5px;color:var(--text-mid);max-width:180px;}
+.td-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.action-pill{font-size:10px;font-weight:600;padding:5px 12px;border-radius:100px;border:none;cursor:pointer;transition:all .2s;letter-spacing:.04em;}
+.ap-feature{background:var(--green-light);color:var(--green);}
+.ap-archive{background:var(--amber-light);color:var(--amber);}
+.ap-reject{background:var(--red-light);color:var(--red);}
+.ap-view{background:var(--navy-light);color:var(--navy);}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,22,40,.75);z-index:500;display:none;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(4px);}
+.modal-overlay.on{display:flex;}
+.modal{background:white;border-radius:var(--r-xl);max-width:620px;width:100%;max-height:88vh;overflow-y:auto;}
+.modal-header{background:linear-gradient(135deg,var(--navy-deep),var(--navy-mid));padding:32px 32px 28px;position:relative;}
+.modal-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.12);border:none;color:white;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;}
+.modal-mile{font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,.4);letter-spacing:.15em;margin-bottom:8px;}
+.modal-name{font-family:'Cormorant Garamond',serif;font-size:30px;color:white;font-weight:600;margin-bottom:4px;}
+.modal-meta{font-size:11.5px;color:rgba(255,255,255,.5);}
+.modal-body{padding:28px 32px;}
+.modal-theme-badge{display:inline-block;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--gold);background:var(--gold-pale);border:1px solid var(--border-gold);padding:4px 12px;border-radius:100px;margin-bottom:20px;}
+.modal-qa{margin-bottom:22px;}
+.modal-q{font-size:12px;font-weight:600;color:var(--navy);margin-bottom:7px;line-height:1.4;}
+.modal-a{font-size:14px;color:var(--text-mid);line-height:1.72;}
+
+@keyframes riseIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.modal{animation:riseIn .35s ease;}
+
+@media(max-width:900px){.admin-stats{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:620px){
+  .admin-header,.admin-stats,.admin-tabs,.admin-content{padding-left:18px;padding-right:18px;}
+  .admin-login-shell{padding-left:18px;padding-right:18px;}
+  .admin-auth-card{padding:24px 22px 28px;}
+}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <a class="tn-brand" href="index.html">
+    <div class="tn-y">Y</div>
+    <div class="tn-name">Walk a Mile</div>
+  </a>
+  <a class="tn-back" href="index.html">← Site home</a>
+</nav>
+
+<div id="page-admin">
+  <div class="admin-header" id="adminHeaderBar">
+    <div>
+      <h1>Admin Dashboard</h1>
+      <p>Office of Collaborative Excellence · Walk a Mile Campaign Manager</p>
+    </div>
+    <div class="admin-header-actions">
+      <button type="button" class="btn btn-ghost btn-sm" id="adminSignOutBtn" style="display:none" onclick="adminSignOut()">Sign out</button>
+      <button type="button" class="btn btn-gold btn-sm" id="adminExportBtn" style="visibility:hidden" onclick="exportData()">⬇ Export All Data</button>
+    </div>
+  </div>
+  <div class="admin-login-shell" id="adminLoginShell">
+    <div class="admin-auth-card">
+      <div class="section-eye admin-login-kicker">Admin access</div>
+      <h2 class="admin-login-h2">Sign in</h2>
+      <p class="admin-login-sub">Sign in with your Walk a Mile admin email and password.</p>
+      <div class="admin-auth-status" id="adminAuthStatus"></div>
+      <div class="admin-auth-box" id="adminAuthBox">
+        <div class="fg"><label class="fl">Admin email</label><input class="fi" type="email" id="adminEmailInp" autocomplete="username" placeholder="you@yale.edu" /></div>
+        <div class="fg"><label class="fl">Password</label><input class="fi" type="password" id="adminPassInp" autocomplete="current-password" placeholder="••••••••" /></div>
+        <button type="button" class="btn btn-sm" id="adminSignInBtn" onclick="adminSignIn()">Sign in</button>
+        <span id="adminAuthErr"></span>
+      </div>
+    </div>
+  </div>
+  <div id="adminDashboardBody" class="admin-dashboard-body" hidden>
+    <div class="admin-stats">
+      <div class="as-item"><div class="as-num" id="as-total">0</div><div class="as-lbl">Total Submissions</div></div>
+      <div class="as-item"><div class="as-num" id="as-pending">0</div><div class="as-lbl">Pending Review</div></div>
+      <div class="as-item"><div class="as-num" id="as-featured">0</div><div class="as-lbl">Featured</div></div>
+      <div class="as-item"><div class="as-num" id="as-conv">0</div><div class="as-lbl">Conventional Miles</div></div>
+      <div class="as-item"><div class="as-num" id="as-myst">0</div><div class="as-lbl">Mystery Miles</div></div>
+    </div>
+    <div class="admin-tabs">
+      <div class="admin-tab act" onclick="showAdminTab('pending')" id="atab-pending">Pending Review <span class="admin-tab-badge" id="pendingBadge">0</span></div>
+      <div class="admin-tab" onclick="showAdminTab('featured')" id="atab-featured">Featured <span class="admin-tab-badge gold" id="featuredBadge">0</span></div>
+      <div class="admin-tab" onclick="showAdminTab('mystery-admin')" id="atab-mystery-admin">Mystery Mile <span class="admin-tab-badge" id="mystBadge">0</span></div>
+      <div class="admin-tab" onclick="showAdminTab('all')" id="atab-all">All Submissions</div>
+    </div>
+    <div class="admin-content">
+      <div class="admin-panel on" id="apanel-pending"><div id="pendingTableWrap"></div></div>
+      <div class="admin-panel" id="apanel-featured"><div id="featuredTableWrap"></div></div>
+      <div class="admin-panel" id="apanel-mystery-admin"><div id="mystTableWrap"></div></div>
+      <div class="admin-panel" id="apanel-all"><div id="allTableWrap"></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="storyModal" onclick="closeModal(event)">
+  <div class="modal" id="storyModalInner" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <button type="button" class="modal-close" onclick="closeModal()">✕</button>
+      <div class="modal-mile" id="mm-mile">Mile #—</div>
+      <div class="modal-name" id="mm-name">—</div>
+      <div class="modal-meta" id="mm-meta">—</div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-theme-badge" id="mm-theme">—</div>
+      <div id="mm-qa"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.8/dist/umd/supabase.min.js"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/wam-db.js"></script>
+<script src="js/admin-page.js"></script>
+</body>
+</html>

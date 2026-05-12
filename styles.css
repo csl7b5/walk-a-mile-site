@@ -1,0 +1,33 @@
+/*
+=================================================================
+Walk a Mile — Yale Department of Anesthesiology
+Office of Collaborative Excellence
+styles.css — Global Stylesheet
+
+All styles are inlined in index.html for maximum portability.
+This file documents the design token system for reference.
+=================================================================
+*/
+
+:root {
+  --navy: #00356B;
+  --navy-deep: #001628;
+  --navy-mid: #004C97;
+  --navy-light: #E8F0FB;
+  --gold: #C9A84C;
+  --gold-light: #E8C882;
+  --gold-pale: rgba(201,168,76,.1);
+  --cream: #F9F6F0;
+  --white: #FFFFFF;
+  --text-dark: #0f1e30;
+  --text-mid: #3d4a5c;
+  --text-muted: #8a99aa;
+  --border: rgba(0,53,107,.11);
+  --shadow: 0 4px 24px rgba(0,53,107,.1);
+  --shadow-md: 0 8px 40px rgba(0,53,107,.14);
+  --shadow-lg: 0 20px 72px rgba(0,53,107,.18);
+  --r: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+}
+/* Full styles embedded in index.html */

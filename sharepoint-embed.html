@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Walk a Mile | Yale Anesthesiology</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/*
+=================================================================
+WALK A MILE — SHAREPOINT HUB PAGE
+Yale Department of Anesthesiology · Office of Collaborative Excellence
+
+SHAREPOINT DEPLOYMENT NOTES:
+- Paste this entire file into a SharePoint Embed web part, OR
+- Upload as an .html asset and reference via Content Editor Web Part
+- No JavaScript dependencies — fully static HTML/CSS
+- To update content: edit the sections marked IT/ADMIN EDITABLE
+- Qualtrics links: replace QUALTRICS_CONV_LINK and QUALTRICS_MYST_LINK
+  with your actual survey URLs
+=================================================================
+*/
+
+:root {
+  --navy: #00356B;
+  --navy-deep: #001628;
+  --navy-mid: #004C97;
+  --navy-light: #E8F0FB;
+  --gold: #C9A84C;
+  --gold-light: #E8C882;
+  --gold-pale: rgba(201,168,76,.1);
+  --cream: #F9F6F0;
+  --white: #FFFFFF;
+  --text-dark: #0f1e30;
+  --text-mid: #3d4a5c;
+  --text-muted: #8a99aa;
+  --border: rgba(0,53,107,.11);
+  --border-gold: rgba(201,168,76,.28);
+  --shadow: 0 4px 24px rgba(0,53,107,.1);
+  --shadow-md: 0 8px 40px rgba(0,53,107,.14);
+  --r: 14px;
+  --r-lg: 20px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text-dark); }
+img { max-width: 100%; display: block; }
+a { text-decoration: none; color: inherit; }
+
+/* ── LAYOUT ── */
+.wam-wrap { max-width: 1040px; margin: 0 auto; padding: 0 32px; }
+
+/* ── HEADER ── */
+.wam-header {
+  background: var(--navy-deep);
+  padding: 14px 32px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.wam-logo {
+  width: 30px; height: 30px;
+  background: var(--gold);
+  border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 700; color: var(--navy-deep); font-size: 16px;
+  flex-shrink: 0;
+}
+.wam-header-sep { width: 1px; height: 20px; background: rgba(255,255,255,.15); }
+.wam-header-dept { font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.45); font-weight: 500; }
+.wam-header-name { font-family: 'Cormorant Garamond', serif; font-size: 16px; color: rgba(255,255,255,.88); font-style: italic; }
+.wam-header-nav { margin-left: auto; display: flex; gap: 6px; }
+.wam-nav-link {
+  font-size: 11px; font-weight: 500; color: rgba(255,255,255,.55);
+  padding: 6px 14px; border-radius: 100px;
+  border: 1px solid rgba(255,255,255,.12);
+  transition: all .2s; cursor: pointer;
+}
+.wam-nav-link:hover { color: white; border-color: rgba(255,255,255,.3); }
+.wam-nav-link.gold { background: var(--gold); color: var(--navy-deep); border-color: var(--gold); font-weight: 600; }
+.wam-nav-link.gold:hover { background: var(--gold-light); }
+
+/* ── HERO ── */
+.wam-hero {
+  background: var(--navy-deep);
+  padding: 64px 32px 56px;
+  position: relative;
+  overflow: hidden;
+}
+.wam-hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse at 75% 30%, rgba(201,168,76,.12) 0%, transparent 55%),
+    radial-gradient(ellipse at 15% 75%, rgba(0,76,151,.15) 0%, transparent 50%);
+}
+.wam-hero-dots {
+  position: absolute; inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,.04) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+.wam-hero-inner {
+  position: relative; z-index: 1;
+  max-width: 1040px; margin: 0 auto;
+  display: grid; grid-template-columns: 1.1fr 1fr; gap: 56px; align-items: center;
+}
+.wam-hero-kicker { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+.wam-hero-kicker-line { width: 28px; height: 2px; background: var(--gold); }
+.wam-hero-kicker-text { font-size: 10px; letter-spacing: .24em; text-transform: uppercase; color: rgba(255,255,255,.5); font-weight: 600; }
+.wam-hero-h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(52px, 7vw, 78px);
+  line-height: .95; color: white; font-weight: 600; margin-bottom: 8px;
+}
+.wam-hero-h1 em { font-style: italic; color: var(--gold-light); display: block; }
+.wam-hero-tagline { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 16px; color: rgba(255,255,255,.6); margin-bottom: 22px; }
+.wam-hero-desc { font-size: 14px; line-height: 1.75; color: rgba(255,255,255,.55); margin-bottom: 32px; max-width: 420px; }
+.wam-hero-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+.wam-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 13px 26px; border-radius: 100px;
+  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+  letter-spacing: .02em; transition: all .22s; cursor: pointer; border: none;
+}
+.wam-btn-gold { background: var(--gold); color: var(--navy-deep); }
+.wam-btn-gold:hover { background: var(--gold-light); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(201,168,76,.35); }
+.wam-btn-outline { background: rgba(255,255,255,.08); color: rgba(255,255,255,.85); border: 1.5px solid rgba(255,255,255,.18); }
+.wam-btn-outline:hover { background: rgba(255,255,255,.14); transform: translateY(-2px); }
+.wam-btn-navy { background: var(--navy); color: white; }
+.wam-btn-navy:hover { background: var(--navy-mid); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,53,107,.3); }
+.wam-btn-ghost { background: transparent; color: var(--navy); border: 1.5px solid var(--border); }
+.wam-btn-ghost:hover { border-color: var(--navy); background: rgba(0,53,107,.04); }
+.wam-btn-sm { padding: 8px 18px; font-size: 12px; }
+
+/* Hero info card */
+.wam-hero-card {
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: var(--r-lg);
+  padding: 26px;
+  backdrop-filter: blur(8px);
+}
+.wam-hero-card-title { font-family: 'Cormorant Garamond', serif; font-size: 16px; color: white; font-weight: 600; margin-bottom: 18px; }
+.wam-iitem { display: flex; gap: 12px; margin-bottom: 15px; align-items: flex-start; }
+.wam-iitem:last-child { margin-bottom: 0; }
+.wam-iicon { font-size: 16px; flex-shrink: 0; margin-top: 2px; }
+.wam-itext strong { display: block; font-size: 12px; font-weight: 600; color: rgba(255,255,255,.85); margin-bottom: 2px; }
+.wam-itext span { font-size: 11.5px; color: rgba(255,255,255,.45); line-height: 1.5; }
+
+/* Quote */
+.wam-hero-quote {
+  margin-top: 18px;
+  padding: 16px 18px 16px 22px;
+  background: rgba(255,255,255,.06);
+  border-left: 3px solid var(--gold);
+  border-radius: 10px;
+}
+.wam-hero-quote p { font-family: 'Cormorant Garamond', serif; font-size: 15px; font-style: italic; color: rgba(255,255,255,.82); line-height: 1.55; margin-bottom: 5px; }
+.wam-hero-quote cite { font-size: 10px; color: rgba(255,255,255,.4); font-style: normal; letter-spacing: .06em; font-family: 'DM Mono', monospace; }
+
+/* ── STATS BAR ── */
+.wam-stats {
+  background: white;
+  border-bottom: 1.5px solid var(--border);
+}
+.wam-stats-inner {
+  max-width: 1040px; margin: 0 auto; padding: 0 32px;
+  display: grid; grid-template-columns: repeat(4, 1fr);
+}
+.wam-stat {
+  padding: 22px 0; text-align: center;
+  border-right: 1.5px solid var(--border);
+}
+.wam-stat:last-child { border-right: none; }
+.wam-stat-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 38px; font-weight: 700; color: var(--navy); line-height: 1;
+}
+.wam-stat-label { font-size: 11px; color: var(--text-muted); margin-top: 4px; letter-spacing: .04em; }
+
+/* ── SECTION SHARED ── */
+.wam-section { padding: 52px 32px; }
+.wam-section-alt { background: white; }
+.wam-section-dark { background: var(--navy-deep); }
+.wam-section-header {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  margin-bottom: 32px;
+}
+.wam-eye { font-size: 10px; letter-spacing: .24em; text-transform: uppercase; color: var(--gold); font-weight: 700; margin-bottom: 8px; }
+.wam-eye-light { color: var(--gold-light); }
+.wam-section-h {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(26px, 4vw, 36px); color: var(--navy-deep); font-weight: 600; line-height: 1.15;
+}
+.wam-section-h-light { color: white; }
+.wam-section-inner { max-width: 1040px; margin: 0 auto; }
+
+/* ── FEATURED MILES GRID ── */
+.wam-miles-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+}
+
+/* Mile card */
+.wam-mile-card {
+  background: white; border-radius: var(--r-lg);
+  border: 1.5px solid var(--border); overflow: hidden;
+  transition: all .24s;
+}
+.wam-mile-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: rgba(0,53,107,.2); }
+.wam-mc-header {
+  background: linear-gradient(135deg, var(--navy-deep), var(--navy-mid));
+  padding: 22px 20px 18px; position: relative; overflow: hidden;
+}
+.wam-mc-header::after {
+  content: attr(data-emoji);
+  position: absolute; right: 12px; bottom: -6px;
+  font-size: 48px; opacity: .14;
+}
+.wam-mc-num {
+  font-family: 'DM Mono', monospace; font-size: 9px;
+  color: rgba(255,255,255,.4); letter-spacing: .15em; margin-bottom: 6px;
+}
+.wam-mc-name { font-family: 'Cormorant Garamond', serif; font-size: 20px; color: white; font-weight: 600; line-height: 1.2; margin-bottom: 3px; }
+.wam-mc-role { font-size: 10.5px; color: rgba(255,255,255,.5); }
+.wam-mc-body { padding: 17px 20px; }
+.wam-mc-theme { font-size: 9.5px; color: var(--gold); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 7px; }
+.wam-mc-excerpt { font-size: 12.5px; color: var(--text-mid); line-height: 1.65; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.wam-mc-footer {
+  padding: 12px 20px; border-top: 1.5px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.wam-mc-date { font-size: 9.5px; color: var(--text-muted); font-family: 'DM Mono', monospace; }
+.wam-mc-campus { font-size: 9.5px; color: var(--text-muted); }
+
+/* ── MYSTERY MILE SECTION ── */
+.wam-mystery-box {
+  background: white; border-radius: var(--r-lg);
+  border: 1.5px solid var(--border); overflow: hidden;
+  box-shadow: var(--shadow-md); margin-bottom: 32px;
+}
+.wam-mystery-header {
+  background: linear-gradient(135deg, #1a0a3d, var(--navy-mid));
+  padding: 28px 32px; display: flex; align-items: center; gap: 22px;
+}
+.wam-shoe-frame {
+  width: 110px; height: 110px; border-radius: var(--r);
+  overflow: hidden; border: 3px solid rgba(255,255,255,.15);
+  background: rgba(255,255,255,.08); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 52px;
+}
+.wam-shoe-frame img { width: 100%; height: 100%; object-fit: cover; }
+.wam-mystery-label {
+  font-size: 9.5px; letter-spacing: .2em; text-transform: uppercase;
+  color: rgba(255,255,255,.45); font-family: 'DM Mono', monospace; margin-bottom: 8px;
+}
+.wam-mystery-title { font-family: 'Cormorant Garamond', serif; font-size: 26px; color: white; font-weight: 600; margin-bottom: 5px; }
+.wam-mystery-timer { font-size: 11.5px; color: var(--gold-light); font-family: 'DM Mono', monospace; }
+.wam-mystery-clues { padding: 26px 32px; }
+.wam-clue {
+  display: flex; gap: 14px; margin-bottom: 20px;
+  padding-bottom: 20px; border-bottom: 1.5px solid var(--border);
+}
+.wam-clue:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.wam-clue-num {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: var(--navy-light); color: var(--navy);
+  font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.wam-clue-q { font-size: 11.5px; font-weight: 600; color: var(--navy); margin-bottom: 4px; }
+.wam-clue-a { font-family: 'Cormorant Garamond', serif; font-size: 15px; font-style: italic; color: var(--text-mid); line-height: 1.6; }
+.wam-mystery-vote-bar {
+  background: var(--gold-pale); border: 1.5px solid var(--border-gold);
+  border-radius: var(--r); padding: 20px 26px;
+  display: flex; align-items: center; justify-content: space-between; gap: 20px;
+}
+.wam-mystery-vote-bar p { font-size: 13.5px; color: var(--text-mid); line-height: 1.6; }
+.wam-mystery-vote-bar p strong { color: var(--navy); }
+
+/* ── CALL TO ACTION STRIP ── */
+.wam-cta-strip {
+  background: linear-gradient(135deg, var(--navy-deep), var(--navy-mid));
+  padding: 52px 32px;
+}
+.wam-cta-inner {
+  max-width: 1040px; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+}
+.wam-cta-card {
+  background: rgba(255,255,255,.07);
+  border: 1.5px solid rgba(255,255,255,.1);
+  border-radius: var(--r-lg); padding: 28px;
+  transition: all .24s;
+}
+.wam-cta-card:hover { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.2); transform: translateY(-2px); }
+.wam-cta-icon { font-size: 32px; margin-bottom: 14px; display: block; }
+.wam-cta-h { font-family: 'Cormorant Garamond', serif; font-size: 20px; color: white; font-weight: 600; margin-bottom: 8px; }
+.wam-cta-p { font-size: 12.5px; color: rgba(255,255,255,.55); line-height: 1.65; margin-bottom: 20px; }
+
+/* ── HOW IT WORKS ── */
+.wam-how-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.wam-how-card {
+  background: white; border-radius: var(--r);
+  border: 1.5px solid var(--border); padding: 22px 18px; text-align: center;
+}
+.wam-how-num {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--navy); color: white;
+  font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 500;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 14px;
+}
+.wam-how-icon { font-size: 26px; margin-bottom: 10px; display: block; }
+.wam-how-h { font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 6px; }
+.wam-how-p { font-size: 11.5px; color: var(--text-muted); line-height: 1.6; }
+
+/* ── RHYTHM ── */
+.wam-rhythm-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.wam-rhythm-card {
+  border-radius: var(--r); padding: 18px 16px; text-align: center;
+}
+.wam-rhythm-card:nth-child(1) { background: var(--navy-light); }
+.wam-rhythm-card:nth-child(2) { background: var(--gold-pale); border: 1.5px solid var(--border-gold); }
+.wam-rhythm-card:nth-child(3) { background: rgba(46,125,50,.07); }
+.wam-rhythm-card:nth-child(4) { background: rgba(245,127,23,.07); }
+.wam-rhythm-week { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: .15em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+.wam-rhythm-icon { font-size: 24px; margin-bottom: 8px; display: block; }
+.wam-rhythm-h { font-size: 12px; font-weight: 600; color: var(--navy); margin-bottom: 4px; }
+.wam-rhythm-p { font-size: 11px; color: var(--text-muted); line-height: 1.55; }
+
+/* ── DIVIDER ── */
+.wam-divider { height: 1.5px; background: var(--border); margin: 0; }
+
+/* ── FOOTER ── */
+.wam-footer {
+  background: var(--navy-deep);
+  padding: 28px 32px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 16px;
+}
+.wam-footer-brand { display: flex; align-items: center; gap: 10px; }
+.wam-footer-name { font-family: 'Cormorant Garamond', serif; font-size: 15px; color: rgba(255,255,255,.7); font-style: italic; }
+.wam-footer-copy { font-size: 10px; color: rgba(255,255,255,.3); font-family: 'DM Mono', monospace; letter-spacing: .06em; }
+.wam-footer-links { display: flex; gap: 18px; }
+.wam-footer-link { font-size: 11px; color: rgba(255,255,255,.45); transition: color .2s; }
+.wam-footer-link:hover { color: var(--gold-light); }
+
+/* ── CHIP ── */
+.wam-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 9.5px; font-weight: 600; letter-spacing: .08em;
+  text-transform: uppercase; padding: 3px 9px; border-radius: 100px;
+}
+.wam-chip-navy { background: var(--navy-light); color: var(--navy); }
+.wam-chip-gold { background: var(--gold-pale); color: #7a5e00; border: 1px solid var(--border-gold); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 860px) {
+  .wam-hero-inner, .wam-cta-inner { grid-template-columns: 1fr; gap: 32px; }
+  .wam-miles-grid { grid-template-columns: 1fr 1fr; }
+  .wam-how-grid, .wam-rhythm-grid { grid-template-columns: 1fr 1fr; }
+  .wam-stats-inner { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .wam-miles-grid, .wam-how-grid, .wam-rhythm-grid { grid-template-columns: 1fr; }
+  .wam-header-nav { display: none; }
+  .wam-mystery-header { flex-direction: column; align-items: flex-start; }
+  .wam-mystery-vote-bar { flex-direction: column; align-items: flex-start; }
+  .wam-section { padding: 40px 18px; }
+  .wam-hero { padding: 48px 18px 44px; }
+  .wam-cta-strip { padding: 40px 18px; }
+  .wam-footer { padding: 22px 18px; flex-direction: column; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     HEADER
+     IT: Update nav links to your intranet pages
+═══════════════════════════════════════════ -->
+<header class="wam-header">
+  <div class="wam-logo">Y</div>
+  <div class="wam-header-sep"></div>
+  <div class="wam-header-dept">Office of Collaborative Excellence</div>
+  <div class="wam-header-sep"></div>
+  <div class="wam-header-name">Walk a Mile</div>
+  <nav class="wam-header-nav">
+    <a href="#featured" class="wam-nav-link">Featured Miles</a>
+    <a href="#mystery" class="wam-nav-link">Mystery Mile</a>
+    <a href="#archive" class="wam-nav-link">Archive</a>
+    <!-- IT/ADMIN: Replace QUALTRICS_CONV_LINK with your Qualtrics survey URL -->
+    <a href="QUALTRICS_CONV_LINK" target="_blank" class="wam-nav-link gold">Share My Mile →</a>
+  </nav>
+</header>
+
+<!-- ═══════════════════════════════════════════
+     HERO
+═══════════════════════════════════════════ -->
+<section class="wam-hero">
+  <div class="wam-hero-inner">
+    <div>
+      <div class="wam-hero-kicker">
+        <div class="wam-hero-kicker-line"></div>
+        <div class="wam-hero-kicker-text">Yale Anesthesiology · Monthly Campaign</div>
+      </div>
+      <h1 class="wam-hero-h1">Walk<br><em>a Mile</em></h1>
+      <p class="wam-hero-tagline">Every Step Has a Story. Walk It Together.</p>
+      <p class="wam-hero-desc">A monthly campaign celebrating the people behind the masks, the charts, and the research. Faculty, residents, CRNAs, researchers, and admins — all walking here.</p>
+      <div class="wam-hero-btns">
+        <!-- IT/ADMIN: Replace QUALTRICS_CONV_LINK and QUALTRICS_MYST_LINK -->
+        <a href="QUALTRICS_CONV_LINK" target="_blank" class="wam-btn wam-btn-gold">Share My Mile →</a>
+        <a href="QUALTRICS_MYST_LINK" target="_blank" class="wam-btn wam-btn-outline">Enter Mystery Mile 👟</a>
+      </div>
+      <!-- ADMIN EDITABLE: Update quote monthly -->
+      <div class="wam-hero-quote" style="margin-top:28px;">
+        <p>"I had no idea Dr. Chen moonlighted as a line cook for six years. Now I see it every time she runs a code — total calm under fire."</p>
+        <cite>— Fictional Yale Faculty</cite>
+      </div>
+    </div>
+    <div>
+      <div class="wam-hero-card">
+        <div class="wam-hero-card-title">About This Campaign</div>
+        <div class="wam-iitem"><div class="wam-iicon">📍</div><div class="wam-itext"><strong>Monthly Features</strong><span>1–2 spotlights per campus. All roles. All campuses.</span></div></div>
+        <div class="wam-iitem"><div class="wam-iicon">🗞️</div><div class="wam-itext"><strong>Where You'll Appear</strong><span>Department intranet hub + monthly newsletter teaser.</span></div></div>
+        <div class="wam-iitem"><div class="wam-iicon">👟</div><div class="wam-itext"><strong>Two Ways to Participate</strong><span>Share your named story, or stay anonymous with the Mystery Mile contest.</span></div></div>
+        <div class="wam-iitem"><div class="wam-iicon">⏱️</div><div class="wam-itext"><strong>Takes ~5 minutes</strong><span>Smart. Warm. Unexpected. Built for busy professionals.</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     STATS BAR
+     ADMIN EDITABLE: Update numbers monthly
+═══════════════════════════════════════════ -->
+<div class="wam-stats">
+  <div class="wam-stats-inner">
+    <div class="wam-stat">
+      <!-- ADMIN: Update number -->
+      <div class="wam-stat-num">0</div>
+      <div class="wam-stat-label">Miles Logged</div>
+    </div>
+    <div class="wam-stat">
+      <div class="wam-stat-num">6</div>
+      <div class="wam-stat-label">Campuses</div>
+    </div>
+    <div class="wam-stat">
+      <div class="wam-stat-num">5</div>
+      <div class="wam-stat-label">Role Types</div>
+    </div>
+    <div class="wam-stat">
+      <!-- ADMIN: Update number -->
+      <div class="wam-stat-num">0</div>
+      <div class="wam-stat-label">Mystery Milers</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     FEATURED MILES
+     ADMIN EDITABLE: Add/remove cards each month
+     Copy a .wam-mile-card block to add a new story
+═══════════════════════════════════════════ -->
+<section class="wam-section wam-section-alt" id="featured">
+  <div class="wam-section-inner">
+    <div class="wam-section-header">
+      <div>
+        <div class="wam-eye">This Month</div>
+        <h2 class="wam-section-h">Featured Miles</h2>
+      </div>
+      <a href="#archive" class="wam-btn wam-btn-ghost wam-btn-sm">View Archive →</a>
+    </div>
+
+    <div class="wam-miles-grid">
+
+      <!--
+        ADMIN: FEATURED MILE CARD TEMPLATE
+        Copy this block and fill in:
+        - data-emoji: role emoji (🩺 faculty, 🏥 resident, 💉 CRNA, 🔬 research, 📋 admin)
+        - Mile number, name, role, campus
+        - Theme name
+        - Excerpt (first answer, ~100 chars)
+        - Month Year
+        - Link to full story page (or Qualtrics results page)
+      -->
+      <div class="wam-mile-card">
+        <div class="wam-mc-header" data-emoji="🩺">
+          <div class="wam-mc-num">Mile #1</div>
+          <div class="wam-mc-name">Your First Featured Name</div>
+          <div class="wam-mc-role">Faculty · York Street</div>
+        </div>
+        <div class="wam-mc-body">
+          <div class="wam-mc-theme">Walk a Mile in My Workflow</div>
+          <div class="wam-mc-excerpt">Add the first line of their story answer here — just enough to make someone want to read more. Keep it to two or three sentences.</div>
+        </div>
+        <div class="wam-mc-footer">
+          <span class="wam-mc-date">May 2025</span>
+          <span class="wam-mc-campus">York Street</span>
+        </div>
+      </div>
+
+      <div class="wam-mile-card">
+        <div class="wam-mc-header" data-emoji="🏥">
+          <div class="wam-mc-num">Mile #2</div>
+          <div class="wam-mc-name">Your Second Featured Name</div>
+          <div class="wam-mc-role">Resident/Fellow · Saint Raphael</div>
+        </div>
+        <div class="wam-mc-body">
+          <div class="wam-mc-theme">Call Night Chronicles</div>
+          <div class="wam-mc-excerpt">Add the first line of their story answer here. A sentence or two is all you need to pull someone in.</div>
+        </div>
+        <div class="wam-mc-footer">
+          <span class="wam-mc-date">May 2025</span>
+          <span class="wam-mc-campus">Saint Raphael</span>
+        </div>
+      </div>
+
+      <!-- ADMIN: Add a third card here when ready, or remove one of the above if only one featured this month -->
+
+    </div>
+  </div>
+</section>
+
+<div class="wam-divider"></div>
+
+<!-- ═══════════════════════════════════════════
+     MYSTERY MILE
+     ADMIN EDITABLE: Update monthly
+     - Shoe photo: replace wam-shoe-frame content with <img> tag
+     - Clues: update each wam-clue-a with the submitted answers
+     - Vote link: replace QUALTRICS_VOTE_LINK with Microsoft Forms or Qualtrics vote survey
+═══════════════════════════════════════════ -->
+<section class="wam-section" id="mystery">
+  <div class="wam-section-inner">
+    <div class="wam-section-header">
+      <div>
+        <div class="wam-eye">This Month</div>
+        <h2 class="wam-section-h">Mystery Mile 👟</h2>
+      </div>
+      <span class="wam-chip wam-chip-gold">Voting Open</span>
+    </div>
+
+    <div class="wam-mystery-box">
+      <div class="wam-mystery-header">
+        <!-- ADMIN: Replace emoji with <img src="shoe-photo.jpg" alt="Mystery shoe" /> when photo is available -->
+        <div class="wam-shoe-frame">👟</div>
+        <div>
+          <div class="wam-mystery-label">This Month's Mystery Mile</div>
+          <div class="wam-mystery-title">Who walks in these shoes?</div>
+          <!-- ADMIN: Update reveal date -->
+          <div class="wam-mystery-timer">🗓 Reveal: May 31 · Vote below before then</div>
+        </div>
+      </div>
+
+      <div class="wam-mystery-clues">
+        <!-- ADMIN: Replace each wam-clue-a with the submitted answer -->
+        <div class="wam-clue">
+          <div class="wam-clue-num">1</div>
+          <div>
+            <div class="wam-clue-q">What do your shoes say about you?</div>
+            <div class="wam-clue-a">Update this with the Mystery Miler's answer when their submission is received.</div>
+          </div>
+        </div>
+        <div class="wam-clue">
+          <div class="wam-clue-num">2</div>
+          <div>
+            <div class="wam-clue-q">What's usually playing in your ears on the way to work?</div>
+            <div class="wam-clue-a">Update this with the Mystery Miler's answer when their submission is received.</div>
+          </div>
+        </div>
+        <div class="wam-clue">
+          <div class="wam-clue-num">3</div>
+          <div>
+            <div class="wam-clue-q">What's one thing people would never guess you did before medicine?</div>
+            <div class="wam-clue-a">Update this with the Mystery Miler's answer when their submission is received.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vote bar -->
+    <div class="wam-mystery-vote-bar">
+      <p><strong>Think you know who it is?</strong><br>Cast your vote before the reveal at month's end.</p>
+      <!-- IT/ADMIN: Replace QUALTRICS_VOTE_LINK with your voting survey URL -->
+      <a href="QUALTRICS_VOTE_LINK" target="_blank" class="wam-btn wam-btn-navy">Cast My Vote →</a>
+    </div>
+  </div>
+</section>
+
+<div class="wam-divider"></div>
+
+<!-- ═══════════════════════════════════════════
+     ARCHIVE
+     ADMIN EDITABLE: Add new cards as stories accumulate
+     Copy a .wam-mile-card block from Featured section above
+═══════════════════════════════════════════ -->
+<section class="wam-section wam-section-alt" id="archive">
+  <div class="wam-section-inner">
+    <div class="wam-section-header">
+      <div>
+        <div class="wam-eye">All Stories</div>
+        <h2 class="wam-section-h">The Archive</h2>
+      </div>
+    </div>
+
+    <div class="wam-miles-grid">
+
+      <!-- ADMIN: Copy mile cards from above into this grid as new stories are published -->
+      <!-- Placeholder message until first stories arrive -->
+      <div style="grid-column:1/-1;text-align:center;padding:48px 0;color:var(--text-muted);">
+        <span style="font-size:40px;display:block;margin-bottom:14px;opacity:.35">📚</span>
+        <p style="font-size:13px;line-height:1.65;">The archive fills up as new Miles are published each month.<br>
+        <a href="QUALTRICS_CONV_LINK" target="_blank" style="color:var(--navy);font-weight:600;">Be the first to submit yours →</a></p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="wam-divider"></div>
+
+<!-- ═══════════════════════════════════════════
+     HOW IT WORKS
+═══════════════════════════════════════════ -->
+<section class="wam-section">
+  <div class="wam-section-inner">
+    <div style="text-align:center;margin-bottom:36px;">
+      <div class="wam-eye">The Process</div>
+      <h2 class="wam-section-h">How It Works</h2>
+    </div>
+    <div class="wam-how-grid">
+      <div class="wam-how-card">
+        <span class="wam-how-icon">✍️</span>
+        <div class="wam-how-num">1</div>
+        <div class="wam-how-h">Submit Your Mile</div>
+        <div class="wam-how-p">Choose Conventional (named story) or Mystery Mile (anonymous clues + shoe photo). Takes ~5 minutes.</div>
+      </div>
+      <div class="wam-how-card">
+        <span class="wam-how-icon">⭐</span>
+        <div class="wam-how-num">2</div>
+        <div class="wam-how-h">Editorial Review</div>
+        <div class="wam-how-p">The Office of Collaborative Excellence selects 1–2 features per campus each month.</div>
+      </div>
+      <div class="wam-how-card">
+        <span class="wam-how-icon">🗞️</span>
+        <div class="wam-how-num">3</div>
+        <div class="wam-how-h">Published & Shared</div>
+        <div class="wam-how-p">Your story appears here on the intranet and in the monthly department newsletter.</div>
+      </div>
+      <div class="wam-how-card">
+        <span class="wam-how-icon">👟</span>
+        <div class="wam-how-num">4</div>
+        <div class="wam-how-h">Mystery Revealed</div>
+        <div class="wam-how-p">Mystery Milers stay anonymous all month. The reveal drops on the last day — can your colleagues guess?</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wam-divider"></div>
+
+<!-- ═══════════════════════════════════════════
+     MONTHLY RHYTHM
+═══════════════════════════════════════════ -->
+<section class="wam-section wam-section-alt">
+  <div class="wam-section-inner">
+    <div style="text-align:center;margin-bottom:32px;">
+      <div class="wam-eye">Monthly Schedule</div>
+      <h2 class="wam-section-h">The Monthly Rhythm</h2>
+    </div>
+    <div class="wam-rhythm-grid">
+      <div class="wam-rhythm-card">
+        <div class="wam-rhythm-week">Week 1</div>
+        <span class="wam-rhythm-icon">📣</span>
+        <div class="wam-rhythm-h">Teaser Drop</div>
+        <div class="wam-rhythm-p">"This Month's Mile Drops Friday" graphic in newsletter & intranet.</div>
+      </div>
+      <div class="wam-rhythm-card">
+        <div class="wam-rhythm-week">Week 2</div>
+        <span class="wam-rhythm-icon">📖</span>
+        <div class="wam-rhythm-h">Mile Release</div>
+        <div class="wam-rhythm-p">Full story published on intranet. Mystery Mile clues go live. Voting opens.</div>
+      </div>
+      <div class="wam-rhythm-card">
+        <div class="wam-rhythm-week">Week 3</div>
+        <span class="wam-rhythm-icon">💬</span>
+        <div class="wam-rhythm-h">Reflect & Respond</div>
+        <div class="wam-rhythm-p">A reflection prompt sent to connect with the featured person directly.</div>
+      </div>
+      <div class="wam-rhythm-card">
+        <div class="wam-rhythm-week">Week 4</div>
+        <span class="wam-rhythm-icon">🎉</span>
+        <div class="wam-rhythm-h">Community Share & Reveal</div>
+        <div class="wam-rhythm-p">Submissions, reflections, Mystery Mile guesses — and the big reveal.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     CTA STRIP
+═══════════════════════════════════════════ -->
+<div class="wam-cta-strip">
+  <div class="wam-cta-inner">
+    <div class="wam-cta-card">
+      <span class="wam-cta-icon">📖</span>
+      <div class="wam-cta-h">Share Your Conventional Mile</div>
+      <div class="wam-cta-p">Tell your story in your own words. Your named feature will appear on the intranet and in the newsletter.</div>
+      <!-- IT/ADMIN: Replace QUALTRICS_CONV_LINK -->
+      <a href="QUALTRICS_CONV_LINK" target="_blank" class="wam-btn wam-btn-gold">Start My Mile →</a>
+    </div>
+    <div class="wam-cta-card">
+      <span class="wam-cta-icon">👟</span>
+      <div class="wam-cta-h">Enter the Mystery Mile</div>
+      <div class="wam-cta-p">Stay anonymous. Upload your shoe photo and three clues. Let the department try to guess who you are.</div>
+      <!-- IT/ADMIN: Replace QUALTRICS_MYST_LINK -->
+      <a href="QUALTRICS_MYST_LINK" target="_blank" class="wam-btn wam-btn-outline">Enter Anonymously →</a>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════════ -->
+<footer class="wam-footer">
+  <div class="wam-footer-brand">
+    <div class="wam-logo">Y</div>
+    <div class="wam-footer-name">Walk a Mile</div>
+  </div>
+  <div class="wam-footer-copy">Yale Department of Anesthesiology · Office of Collaborative Excellence · Every Step Has a Story.</div>
+  <div class="wam-footer-links">
+    <a href="QUALTRICS_CONV_LINK" target="_blank" class="wam-footer-link">Submit a Mile</a>
+    <a href="QUALTRICS_MYST_LINK" target="_blank" class="wam-footer-link">Mystery Mile</a>
+    <a href="#archive" class="wam-footer-link">Archive</a>
+  </div>
+</footer>
+
+<!--
+=================================================================
+ADMIN MAINTENANCE GUIDE
+=================================================================
+
+MONTHLY CHECKLIST:
+□ Update Stats Bar numbers (Miles Logged, Mystery Milers)
+□ Swap Featured Miles cards (update name, role, campus, theme, excerpt, date)
+□ Update Mystery Mile clues (paste submitted answers into wam-clue-a divs)
+□ Replace shoe emoji with actual photo in wam-shoe-frame
+□ Update Mystery Mile reveal date in wam-mystery-timer
+□ Move previous featured cards into the Archive section
+□ Update hero quote if desired
+
+LINKS TO REPLACE BEFORE LAUNCH:
+- QUALTRICS_CONV_LINK  → Conventional Mile Qualtrics survey URL
+- QUALTRICS_MYST_LINK  → Mystery Mile Qualtrics survey URL
+- QUALTRICS_VOTE_LINK  → Monthly voting survey URL (can be Microsoft Forms)
+
+ADDING A NEW MILE CARD:
+Copy this block and paste into either the Featured or Archive grid:
+
+<div class="wam-mile-card">
+  <div class="wam-mc-header" data-emoji="🩺">
+    <div class="wam-mc-num">Mile #N</div>
+    <div class="wam-mc-name">Full Name</div>
+    <div class="wam-mc-role">Role · Campus</div>
+  </div>
+  <div class="wam-mc-body">
+    <div class="wam-mc-theme">Theme Name</div>
+    <div class="wam-mc-excerpt">First 1-2 sentences of their story...</div>
+  </div>
+  <div class="wam-mc-footer">
+    <span class="wam-mc-date">Month Year</span>
+    <span class="wam-mc-campus">Campus Name</span>
+  </div>
+</div>
+
+Role emojis: Faculty 🩺 · Resident 🏥 · CRNA 💉 · Research 🔬 · Admin 📋
+=================================================================
+-->
+
+</body>
+</html>
