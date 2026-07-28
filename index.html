@@ -351,6 +351,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text-d
 .wam-submit-err{display:none;margin-bottom:16px;padding:12px 16px;border-radius:var(--r-sm);background:var(--red-light);color:var(--red);font-size:13px;line-height:1.5;}
 .wam-submit-err.on{display:block;}
 
+/* Site-wide notice: backend unreachable / paused */
+.wam-notice{display:none;position:fixed;top:54px;left:0;right:0;z-index:280;background:var(--amber-light);border-bottom:1.5px solid rgba(245,127,23,.35);color:#7a4b00;font-size:13px;line-height:1.55;padding:11px 20px;text-align:center;}
+.wam-notice.on{display:block;}
+.wam-notice button{margin-left:10px;background:var(--navy);color:white;border:none;border-radius:100px;padding:5px 14px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;}
+
+/* Closed-form state */
+.closed-card{background:white;border:1.5px solid var(--border);border-radius:var(--r-xl);box-shadow:var(--shadow);padding:52px 40px;text-align:center;max-width:620px;margin:0 auto;}
+.closed-card .cc-icon{font-size:52px;display:block;margin-bottom:18px;opacity:.55;}
+.closed-card h2{font-family:'Cormorant Garamond',serif;font-size:clamp(26px,4vw,36px);color:var(--navy-deep);font-weight:600;margin-bottom:12px;line-height:1.2;}
+.closed-card p{font-size:14px;color:var(--text-mid);line-height:1.7;margin-bottom:8px;}
+.closed-card .cc-acts{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:26px;}
+.vote-closed-note{background:var(--navy-light);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:13px 16px;font-size:12.5px;color:var(--text-mid);line-height:1.6;margin-bottom:18px;}
+
 /* ============================================================
    ANIMATIONS
    ============================================================ */
@@ -394,6 +407,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text-d
   </div>
   <a href="admin.html" class="tn-admin-btn">⚙️ <span>Admin</span></a>
 </nav>
+
+<div class="wam-notice" id="wamNotice" role="status"></div>
 
 <!-- ══════════════════════════════════════════════════════════
      PAGE: HUB
@@ -483,6 +498,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text-d
 <div class="page" id="page-submit">
   <div class="sv-outer"><div class="sv-inner">
     <p id="wamSubmitErr" class="wam-submit-err" role="alert"></p>
+
+    <!-- SUBMISSIONS CLOSED -->
+    <div class="closed-card" id="sv-closed" style="display:none;">
+      <span class="cc-icon">🔒</span>
+      <h2>Submissions Are<br><em>Closed Right Now</em></h2>
+      <p id="svClosedBody">The window for sharing your Mile has closed for this round. Submissions reopen at the start of the next quarter — watch your department email for the announcement.</p>
+      <p>In the meantime, read what your colleagues have shared.</p>
+      <div class="cc-acts">
+        <button class="btn" onclick="showPage('archive')">Read the Archive <span class="a">→</span></button>
+        <button class="btn btn-ghost" onclick="showPage('mystery')">See the Mystery Mile</button>
+      </div>
+    </div>
 
     <!-- FORK -->
     <div class="scard on" id="sv-fork">
@@ -587,7 +614,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text-d
         <div class="s-eye">Section 2 — Choose Your Prompt Set</div>
         <h2 class="s-ttl">Pick Your Clue Set</h2>
         <p class="s-sub">These are your anonymous clues. Pick the set that feels most <em>you</em>.</p>
-        <div class="myst-banner"><h3>How Mystery Mile Works</h3><p>Your shoe photo + three clues go out anonymously. The department votes. The reveal drops at month's end!</p></div>
+        <div class="myst-banner"><h3>How Mystery Mile Works</h3><p>Your shoe photo + three clues go out anonymously. The department votes. The reveal drops at the end of the round!</p></div>
         <div class="psgrid" id="mPG"></div>
         <div class="snav"><button class="btn btn-ghost" onclick="mGo(1)">← Back</button><span class="snav-cnt">Step 2 of 3</span><button class="btn" onclick="mGo(3)">Continue <span class="a">→</span></button></div>
       </div>
@@ -660,7 +687,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text-d
     <!-- Voting -->
     <div class="vote-section" id="voteSection">
       <h3>Who Do You Think It Is?</h3>
-      <p>Make your guess below. Results reveal at the end of the month.</p>
+      <p>Make your guess below. Results reveal at the end of the round.</p>
       <div class="vote-options" id="voteOptions"></div>
       <button class="btn" onclick="castVote()" id="voteBtn">Cast My Vote →</button>
       <div class="vote-results" id="voteResults">
@@ -680,7 +707,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text-d
     <div class="pm-grid" id="pastMystGrid">
       <div class="empty-state" style="grid-column:1/-1">
         <span class="empty-state-icon">👟</span>
-        <p>No past mysteries yet.<br>History will appear here after each month's reveal.</p>
+        <p>No past mysteries yet.<br>History will appear here after each reveal.</p>
       </div>
     </div>
   </div>
@@ -748,6 +775,12 @@ function getVotes() {
   return WamDb.getVotes();
 }
 
+function esc(v) {
+  return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+
 function showSubmitErr(msg) {
   const el = document.getElementById('wamSubmitErr');
   if (!el) return;
@@ -794,10 +827,70 @@ function scheduleResetWizardAfterSuccess() {
 }
 
 function refreshAll() {
+  renderGlobalNotice();
+  renderSubmitGate();
   buildHubStats();
   buildHubFeatured();
   buildArchive(currentFilter);
   buildMysteryPage();
+}
+
+// ── CAMPAIGN STATE ───────────────────────────────────────────
+function submissionsOpen() {
+  return typeof WamDb !== 'undefined' && WamDb.submissionsOpen();
+}
+
+function votingOpen() {
+  return typeof WamDb !== 'undefined' && WamDb.votingOpen();
+}
+
+function quarterLabel() {
+  const s = WamDb.getSettings();
+  return (s && s.quarterLabel) || 'this quarter';
+}
+
+/**
+ * Surfaces backend trouble instead of leaving the page looking simply empty.
+ * A paused free-tier database is the common case and it recovers on its own.
+ */
+function renderGlobalNotice() {
+  const el = document.getElementById('wamNotice');
+  if (!el) return;
+  const err = WamDb.getConnectionError && WamDb.getConnectionError();
+  if (!err) {
+    el.classList.remove('on');
+    el.innerHTML = '';
+    return;
+  }
+  el.innerHTML = '<span>' + err + '</span><button onclick="location.reload()">Retry</button>';
+  el.classList.add('on');
+}
+
+function renderSubmitGate() {
+  const closed = document.getElementById('sv-closed');
+  const fork = document.getElementById('sv-fork');
+  if (!closed || !fork) return;
+  const open = submissionsOpen();
+  const body = document.getElementById('svClosedBody');
+  if (body) {
+    body.textContent = open
+      ? ''
+      : 'The window for sharing your Mile has closed for ' +
+        quarterLabel() +
+        '. Submissions reopen at the start of the next round — watch your department email for the announcement.';
+  }
+  const conv = document.getElementById('sv-conv');
+  const myst = document.getElementById('sv-myst');
+  if (open) {
+    closed.style.display = 'none';
+    const inWizard = (conv && conv.style.display === 'block') || (myst && myst.style.display === 'block');
+    if (!inWizard) fork.classList.add('on');
+  } else {
+    closed.style.display = 'block';
+    fork.classList.remove('on');
+    if (conv) conv.style.display = 'none';
+    if (myst) myst.style.display = 'none';
+  }
 }
 
 // ── NAVIGATION ───────────────────────────────────────────────
@@ -835,9 +928,12 @@ function buildHubStats(){
   const db=getDB();
   const pub=(s)=>(s.status==='featured'||s.status==='archived');
   const conv=db.filter(s=>s.type==='conv'&&pub(s));
-  const myst=db.filter(s=>s.type==='myst'&&pub(s));
+  // The live mystery is deliberately not in the public submissions feed, so count
+  // the revealed ones and add the current round if there is one running.
+  const revealedMyst=db.filter(s=>s.type==='myst'&&s.status==='archived').length;
+  const liveMyst=WamDb.getActiveMystery()?1:0;
   animNum('statMiles',conv.length);
-  animNum('statMysteries',myst.length);
+  animNum('statMysteries',revealedMyst+liveMyst);
 }
 
 function animNum(id,target){
@@ -950,60 +1046,100 @@ function closeModal(e){
 
 // ── MYSTERY PAGE ──────────────────────────────────────────────
 function buildMysteryPage(){
-  const db=getDB();
-  const mysteries=db.filter(s=>s.type==='myst');
-  const active=mysteries.find(s=>s.status==='featured');
+  const active=WamDb.getActiveMystery();
   const mm=document.getElementById('mysteryThisMonth');
   const vs=document.getElementById('voteSection');
+  const label=quarterLabel();
 
   if(!active){
-    mm.innerHTML=`<div style="padding:48px 32px;text-align:center;"><span style="font-size:48px;display:block;margin-bottom:16px;opacity:.3">👟</span><p style="font-size:14px;color:var(--text-muted);">No Mystery Mile this month yet.<br>Check back soon — or <button class="btnlnk" onclick="showPage('submit');startJourney('myst')">submit yours</button>!</p></div>`;
+    const invite=submissionsOpen()
+      ? `Check back soon — or <button class="btnlnk" onclick="showPage('submit');startJourney('myst')">submit yours</button>!`
+      : `Check back when the next round is announced.`;
+    mm.innerHTML=`<div style="padding:48px 32px;text-align:center;"><span style="font-size:48px;display:block;margin-bottom:16px;opacity:.3">👟</span><p style="font-size:14px;color:var(--text-muted);">No Mystery Mile running right now.<br>${invite}</p></div>`;
     vs.style.display='none';
+    buildPastMysteries();
     return;
   }
 
   vs.style.display='block';
-  // Header
   const shoeHTML=active.photo
-    ?`<div class="mtm-shoe-frame"><img src="${active.photo}" alt="Mystery shoe" /></div>`
+    ?`<div class="mtm-shoe-frame"><img src="${esc(active.photo)}" alt="Mystery shoe" /></div>`
     :`<div class="mtm-shoe-frame">👟</div>`;
 
   mm.innerHTML=`
     <div class="mtm-header">
       ${shoeHTML}
       <div class="mtm-info">
-        <div class="mtm-label">This Month's Mystery Mile · Set #${active.promptSet||'?'}</div>
+        <div class="mtm-label">${esc(label)} Mystery Mile · Set #${esc(active.promptSet||'?')}</div>
         <div class="mtm-title">Who walks in these shoes?</div>
-        <div class="mtm-timer">🗓 Reveal at month's end · Vote below</div>
+        <div class="mtm-timer">${votingOpen()?'🗳 Voting is open · Cast your guess below':'🔒 Voting is closed · Reveal coming soon'}</div>
       </div>
     </div>
     <div class="mtm-clues">
-      ${(active.promptQuestions||['Clue 1','Clue 2','Clue 3']).map((q,i)=>`
+      ${(active.promptQuestions.length?active.promptQuestions:['Clue 1','Clue 2','Clue 3']).map((q,i)=>`
         <div class="mtm-clue">
           <div class="mtm-clue-num">${i+1}</div>
           <div>
-            <div class="mtm-clue-q">${q}</div>
-            <div class="mtm-clue-a">${active.answers?.[i]||'—'}</div>
+            <div class="mtm-clue-q">${esc(q)}</div>
+            <div class="mtm-clue-a">${esc(active.answers[i]||'—')}</div>
           </div>
         </div>`).join('')}
     </div>`;
 
-  // Vote options: only conventional miles already published (not pending review)
-  const convPeople=db.filter(s=>s.type==='conv'&&(s.status==='featured'||s.status==='archived')).slice(0,8);
+  buildBallot();
+  buildPastMysteries();
+}
+
+/**
+ * The ballot is every Mystery Miler who submitted during the current quarter,
+ * shuffled server-side. Choices come from the database rather than the public
+ * submissions feed so the live mystery's identity never reaches the browser.
+ */
+function buildBallot(){
+  const ballot=WamDb.getBallot()||[];
   const vopts=document.getElementById('voteOptions');
-  if(convPeople.length===0){
-    vopts.innerHTML=`<p style="font-size:13px;color:var(--text-muted);grid-column:1/-1">Voting options will appear once Conventional Miles have been submitted.</p>`;
-  } else {
-    const votes=getVotes();
-    const myVote=votes['current_vote'];
-    vopts.innerHTML=convPeople.map(p=>`
-      <div class="vote-option ${myVote===p.id?'selected':''}" onclick="selectVote('${p.id}',this)">
-        <div class="vo-avatar">${roleEmoji(p.role)}</div>
-        <div><div class="vo-name">${p.name}</div><div class="vo-role">${p.role}</div></div>
-      </div>`).join('');
+  const btn=document.getElementById('voteBtn');
+  const intro=document.querySelector('#voteSection > p');
+  const open=votingOpen();
+  const votes=getVotes();
+  const myVote=votes.current_vote;
+
+  document.querySelectorAll('#voteSection .vote-closed-note').forEach(n=>n.remove());
+
+  if(intro){
+    intro.textContent=open
+      ? `Everyone below submitted a Mystery Mile this ${quarterLabel()==='this quarter'?'quarter':'round'}. One of them is wearing those shoes.`
+      : 'Voting has closed for this round. Here is where the guesses landed.';
   }
 
-  buildPastMysteries();
+  if(!open){
+    const note=document.createElement('div');
+    note.className='vote-closed-note';
+    note.textContent='🔒 Voting is closed. The reveal will be posted here and announced by the Office of Collaborative Excellence.';
+    vopts.parentNode.insertBefore(note,vopts);
+    vopts.innerHTML='';
+    vopts.style.display='none';
+    if(btn)btn.style.display='none';
+    showVoteResults();
+    return;
+  }
+
+  vopts.style.display='';
+  if(btn){btn.style.display='';btn.textContent=myVote?'Update My Vote':'Cast My Vote →';}
+
+  if(ballot.length===0){
+    vopts.innerHTML=`<p style="font-size:13px;color:var(--text-muted);grid-column:1/-1">The ballot is empty — no Mystery Miles were submitted during ${esc(quarterLabel())} yet.</p>`;
+    return;
+  }
+
+  selectedVoteId=myVote||null;
+  vopts.innerHTML=ballot.map(p=>`
+    <div class="vote-option ${myVote===p.id?'selected':''}" onclick="selectVote('${esc(p.id)}',this)">
+      <div class="vo-avatar">${roleEmoji(p.role)}</div>
+      <div><div class="vo-name">${esc(p.name)}</div><div class="vo-role">${esc(p.role)}</div></div>
+    </div>`).join('');
+
+  if(myVote)showVoteResults();
 }
 
 let selectedVoteId=null;
@@ -1014,29 +1150,40 @@ function selectVote(id,el){
 }
 
 function castVote(){
+  if(!votingOpen()){alert('Voting is closed right now.');return;}
   if(!selectedVoteId){alert('Please select who you think it is!');return;}
   if(!WamDb.isReady()){alert('Walk a Mile voting is unavailable right now.');return;}
-  void WamDb.castVote(selectedVoteId).then(function(){showVoteResults();}).catch(function(e){alert(e.message||String(e));});
+  const btn=document.getElementById('voteBtn');
+  if(btn)btn.disabled=true;
+  void WamDb.castVote(selectedVoteId)
+    .then(function(){showVoteResults();if(btn)btn.textContent='Update My Vote';})
+    .catch(function(e){alert(e.message||String(e));})
+    .finally(function(){if(btn)btn.disabled=false;});
 }
 
 function showVoteResults(){
   const vr=document.getElementById('voteResults');
-  vr.classList.add('on');
   const votes=getVotes();
   const tally=votes.tally||{};
-  const total=Object.values(tally).reduce((a,b)=>a+b,0)||1;
-  const db=getDB();
+  const entries=Object.entries(tally);
   const bars=document.getElementById('vrBars');
-  const sorted=Object.entries(tally).sort((a,b)=>b[1]-a[1]);
+  if(entries.length===0){
+    if(votingOpen()){vr.classList.remove('on');return;}
+    vr.classList.add('on');
+    bars.innerHTML=`<p style="font-size:13px;color:var(--text-muted)">No guesses were cast this round.</p>`;
+    return;
+  }
+  vr.classList.add('on');
+  const total=votes.total||entries.reduce((a,[,n])=>a+n,0)||1;
+  const sorted=entries.sort((a,b)=>b[1]-a[1]);
   bars.innerHTML=sorted.map(([id,count])=>{
-    const person=db.find(s=>s.id===id);
     const pct=Math.round(count/total*100);
+    const name=WamDb.ballotNameFor(id)||'A colleague';
     return `<div class="vr-bar-row">
-      <div class="vr-name"><span>${person?person.name:id}</span><span>${pct}%</span></div>
+      <div class="vr-name"><span>${esc(name)}${votes.current_vote===id?' · your guess':''}</span><span>${pct}%</span></div>
       <div class="vr-bar-bg"><div class="vr-bar-fill" style="width:${pct}%"></div></div>
     </div>`;
   }).join('');
-  document.getElementById('voteBtn').textContent='Update My Vote';
 }
 
 function buildPastMysteries(){
@@ -1045,7 +1192,7 @@ function buildPastMysteries(){
   const grid=document.getElementById('pastMystGrid');
   if(!grid)return;
   if(past.length===0){
-    grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><span class="empty-state-icon">👟</span><p>Past Mystery Milers will appear here after each month's reveal.</p></div>`;
+    grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><span class="empty-state-icon">👟</span><p>Past Mystery Milers will appear here after each reveal.</p></div>`;
     return;
   }
   grid.innerHTML=past.map(s=>`
@@ -1199,10 +1346,12 @@ function resetToFork(){
   mRole=''; mSet=null; photoDataURL=null;
   clearPhotoState();
   setProg(5);
+  renderSubmitGate();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
 function startJourney(type){
+  if(!submissionsOpen()){renderSubmitGate();return;}
   document.getElementById('sv-fork').classList.remove('on');
   if(type==='conv'){
     document.getElementById('sv-conv').style.display='block';
@@ -1268,6 +1417,7 @@ async function submitConv(){
     alert('Walk a Mile could not save right now. Check your connection or site configuration.');
     return;
   }
+  if(!submissionsOpen()){renderSubmitGate();showSubmitErr('Submissions closed while you were writing. Nothing was saved — sorry about that.');return;}
   const name=document.getElementById('cName').value.trim();
   clearSubmitErr();
   setSubmitBusy(true);
@@ -1332,6 +1482,7 @@ async function submitMyst(){
     alert('Walk a Mile could not save right now. Check your connection or site configuration.');
     return;
   }
+  if(!submissionsOpen()){renderSubmitGate();showSubmitErr('Submissions closed while you were writing. Nothing was saved — sorry about that.');return;}
   if(!photoDataURL){alert('Please upload your shoe photo.');return;}
   clearSubmitErr();
   setSubmitBusy(true);
@@ -1415,7 +1566,7 @@ function showSuccess(type,name,theme){
   document.getElementById('stcMsg').textContent=themeMessages[theme]||themeMessages.default;
   document.getElementById('sSub').textContent=isConv
     ?(name?`Thank you, ${name}. `:'')+'Your submission will be reviewed and you\'ll be notified when your feature is scheduled.'
-    :'Your clues are in. The mystery feature drops at the start of next month — can your colleagues figure out who you are?';
+    :'Your clues are in. Watch for the next Mystery Mile to go live — can your colleagues figure out who you are?';
   document.getElementById('succScreen').classList.add('on');
   setTimeout(()=>launchConfetti(isConv),300);
 }
@@ -1531,6 +1682,22 @@ window.addEventListener('wam-db-refresh', function () {
     console.error(e);
   }
   refreshAll();
+
+  // A paused database wakes on the first request but that request is the one that
+  // failed, so retry a couple of times before leaving the notice up for good.
+  let retries = 0;
+  const wake = setInterval(function () {
+    if (!WamDb.getConnectionError() || retries >= 3 || !WamDb.isReady()) {
+      clearInterval(wake);
+      return;
+    }
+    retries++;
+    WamDb.syncAll()
+      .then(refreshAll)
+      .catch(function () {
+        refreshAll();
+      });
+  }, 8000);
 })();
 </script>
 </body>
