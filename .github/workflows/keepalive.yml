@@ -1,0 +1,79 @@
+name: Keep Supabase awake
+
+# Supabase free-tier projects pause after roughly a week without database
+# activity, and the site then fails to load until someone wakes it from the
+# dashboard. A cheap read every other day keeps the project counted as active.
+#
+# The workflow reads the project URL and publishable key straight out of
+# js/supabase-config.js, so there is nothing to configure. Both values are
+# already public — they ship to every visitor's browser.
+#
+# Caveat worth knowing: GitHub disables scheduled workflows in repositories with
+# no activity for 60 days. If the repo goes quiet for that long, re-enable this
+# from the Actions tab (or push any commit).
+
+on:
+  schedule:
+    # 07:14 UTC every other day. Off-the-hour on purpose: GitHub drops scheduled
+    # runs at popular times like :00 under load.
+    - cron: '14 7 */2 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read Supabase config
+        id: cfg
+        run: |
+          set -euo pipefail
+          CONFIG=js/supabase-config.js
+          if [ ! -f "$CONFIG" ]; then
+            echo "::error::$CONFIG not found — cannot determine which project to ping."
+            exit 1
+          fi
+          URL=$(grep -oE "https://[a-z0-9]+\.supabase\.co" "$CONFIG" | head -n1)
+          KEY=$(grep -oE "(sb_publishable_[A-Za-z0-9_-]+|eyJ[A-Za-z0-9_.-]+)" "$CONFIG" | head -n1)
+          if [ -z "$URL" ] || [ -z "$KEY" ]; then
+            echo "::error::Could not parse the Supabase URL or key out of $CONFIG."
+            exit 1
+          fi
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "::add-mask::$KEY"
+          echo "key=$KEY" >> "$GITHUB_OUTPUT"
+          echo "Pinging $URL"
+
+      - name: Ping the database
+        env:
+          SUPABASE_URL: ${{ steps.cfg.outputs.url }}
+          SUPABASE_KEY: ${{ steps.cfg.outputs.key }}
+        run: |
+          set -euo pipefail
+          # A paused project can take a while to come back, so retry with backoff
+          # rather than failing the run on the request that does the waking.
+          # `submissions` is queried rather than `campaign_settings` because it exists
+          # both before and after the migrations, so the ping keeps working even if
+          # the migrations have not been applied yet.
+          for attempt in 1 2 3 4 5; do
+            CODE=$(curl -sS -o /tmp/body.txt -w '%{http_code}' --max-time 60 \
+              -H "apikey: $SUPABASE_KEY" \
+              -H "Authorization: Bearer $SUPABASE_KEY" \
+              "$SUPABASE_URL/rest/v1/submissions?select=id&limit=1" || echo 000)
+
+            if [ "$CODE" = "200" ]; then
+              echo "Database is awake (HTTP $CODE): $(cat /tmp/body.txt)"
+              exit 0
+            fi
+
+            echo "Attempt $attempt returned HTTP $CODE: $(cat /tmp/body.txt || true)"
+            sleep $((attempt * 20))
+          done
+
+          echo "::error::Supabase did not respond successfully after 5 attempts. The project may be paused and need waking from the dashboard."
+          exit 1
