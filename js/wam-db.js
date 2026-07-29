@@ -5,19 +5,31 @@
  */
 (function () {
   const VOTER_KEY = 'wam_voter_key_v1';
+  const DIVISION_KEY = 'wam_voter_division_v1';
   const DOC_MAX_CLIENT = 590000;
 
   let client = null;
   let submissions = [];
   let settings = null;
-  let activeMystery = null;
-  let ballot = [];
-  let votesView = { tally: {}, total: 0, current_vote: null };
+  let activeMysteries = [];
+  let roster = [];
+  let divisions = [];
+  // Tallies for every live mystery, keyed by public_ref.
+  let votesByRef = {};
   let adminSessionOk = false;
   let connectionError = null;
+  let settingsError = null;
 
   function logErr(...args) {
     console.error('[WamDb]', ...args);
+  }
+
+  function normalizeVotes(data) {
+    return {
+      total: (data && data.total) || 0,
+      current_vote: (data && data.current_vote) || null,
+      entries: (data && data.entries) || [],
+    };
   }
 
   /**
@@ -34,6 +46,28 @@
       return 'Walk a Mile is misconfigured (database credentials were rejected). Please contact the campaign administrator.';
     }
     return msg || 'Walk a Mile could not reach its database.';
+  }
+
+  /**
+   * "The switches don't work" has several very different causes. Naming the actual
+   * one saves an admin from guessing between an unapplied migration, a missing row,
+   * and an account that is not really on the admin list.
+   */
+  function describeSettingsFailure(err) {
+    const code = (err && err.code) || '';
+    const msg = (err && (err.message || err.details)) || String(err || '');
+    if (code === 'PGRST205' || code === '42P01' || /could not find the table|does not exist/i.test(msg)) {
+      return 'The campaign_settings table does not exist yet. Apply the migration ' +
+        'supabase/migrations/20260728010000_campaign_settings.sql in the Supabase SQL editor.';
+    }
+    if (code === '42501' || /permission denied|row-level security/i.test(msg)) {
+      return 'Your account is not permitted to change the campaign settings. Check that your ' +
+        'email is listed in the app_admins table.';
+    }
+    if (/failed to fetch|networkerror|load failed/i.test(msg)) {
+      return 'Walk a Mile cannot reach its database right now. It may have paused — please refresh.';
+    }
+    return msg || 'The campaign settings could not be loaded.';
   }
 
   function noteFailure(err, context) {
@@ -151,20 +185,46 @@
       return settings;
     },
 
-    getActiveMystery() {
-      return activeMystery;
+    getActiveMysteries() {
+      return activeMysteries;
     },
 
-    getBallot() {
-      return ballot;
+    /** Everyone in the department — the ballot for every shoe. */
+    getRoster() {
+      return roster;
     },
 
-    getVotes() {
-      return votesView;
+    getDivisions() {
+      return divisions;
+    },
+
+    getVotesFor(ref) {
+      return votesByRef[ref] || { total: 0, current_vote: null, entries: [] };
+    },
+
+    /** The division this browser last voted with, so we only ask once. */
+    getVoterDivision() {
+      try {
+        return window.localStorage.getItem(DIVISION_KEY) || '';
+      } catch (e) {
+        return '';
+      }
+    },
+
+    setVoterDivision(id) {
+      try {
+        window.localStorage.setItem(DIVISION_KEY, id || '');
+      } catch (e) {
+        /* private browsing; the division still rides along with each vote */
+      }
     },
 
     getConnectionError() {
       return connectionError;
+    },
+
+    getSettingsError() {
+      return settingsError;
     },
 
     submissionsOpen() {
@@ -305,7 +365,19 @@
     async syncSettings() {
       if (!client) return null;
       const { data, error } = await client.from('campaign_settings').select('*').eq('id', 1).maybeSingle();
-      if (error) throw error;
+      if (error) {
+        settingsError = describeSettingsFailure(error);
+        settings = null;
+        throw error;
+      }
+      if (!data) {
+        settingsError =
+          'The campaign settings row is missing. Run this in the Supabase SQL editor: ' +
+          "insert into public.campaign_settings (id) values (1) on conflict (id) do nothing;";
+        settings = null;
+        return null;
+      }
+      settingsError = null;
       settings = mapSettings(data);
       return settings;
     },
@@ -319,7 +391,16 @@
       if (patch.submissionsOpen !== undefined) row.submissions_open = !!patch.submissionsOpen;
       if (patch.votingOpen !== undefined) row.voting_open = !!patch.votingOpen;
       const { data, error } = await client.from('campaign_settings').update(row).eq('id', 1).select('*').maybeSingle();
-      if (error) throw error;
+      if (error) throw new Error(describeSettingsFailure(error));
+      // Row-level security rejects a disallowed update by matching zero rows rather
+      // than raising, so an empty result here means "not permitted", not "no change".
+      if (!data) {
+        throw new Error(
+          'The database would not accept that change. Your account is signed in but is not on the ' +
+            'administrator list the database checks — confirm your email appears in app_admins.'
+        );
+      }
+      settingsError = null;
       settings = mapSettings(data);
       return settings;
     },
@@ -358,9 +439,10 @@
       if (!client) {
         submissions = [];
         settings = null;
-        activeMystery = null;
-        ballot = [];
-        votesView = { tally: {}, total: 0, current_vote: null };
+        activeMysteries = [];
+        roster = [];
+        divisions = [];
+        votesByRef = {};
         return;
       }
 
@@ -391,57 +473,84 @@
       }
     },
 
+    /**
+     * Every Mystery Mile submitted this quarter shows at once. The server returns
+     * them in an order derived from their random public_ref, so the position of a
+     * shoe on the page says nothing about who submitted it or when — do not re-sort
+     * this list by anything a visitor could work out for themselves.
+     */
     async syncMystery() {
       if (!client) {
-        activeMystery = null;
-        ballot = [];
-        votesView = { tally: {}, total: 0, current_vote: null };
+        activeMysteries = [];
+        roster = [];
+        divisions = [];
+        votesByRef = {};
         return;
       }
 
-      const { data: mystRows, error: mystErr } = await client.rpc('get_active_mystery');
+      const { data: mystRows, error: mystErr } = await client.rpc('get_active_mysteries');
       if (mystErr) throw mystErr;
-      const m = Array.isArray(mystRows) ? mystRows[0] : mystRows;
-      activeMystery = m
-        ? {
-            ref: m.ref,
-            promptSet: m.prompt_set,
-            promptQuestions: m.prompt_questions || [],
-            answers: m.answers || [],
-            photo: m.photo || null,
-            submittedAt: m.submitted_at,
-          }
-        : null;
+      activeMysteries = (mystRows || []).map(function (m) {
+        return {
+          ref: m.ref,
+          promptSet: m.prompt_set,
+          promptQuestions: m.prompt_questions || [],
+          answers: m.answers || [],
+          photo: m.photo || null,
+        };
+      });
 
-      const { data: ballotRows, error: ballotErr } = await client.rpc('get_mystery_ballot');
-      if (ballotErr) throw ballotErr;
-      ballot = ballotRows || [];
+      // Names only — the roster function deliberately withholds email addresses.
+      const { data: rosterRows, error: rosterErr } = await client.rpc('get_department_roster');
+      if (rosterErr) throw rosterErr;
+      roster = (rosterRows || []).map(function (r) {
+        return { id: r.id, name: r.full_name, category: r.category || '' };
+      });
 
-      await WamDb.syncVotesForActiveMystery();
+      const { data: divRows, error: divErr } = await client
+        .from('divisions')
+        .select('id,name,sort_order')
+        .eq('active', true)
+        .order('sort_order');
+      if (divErr) logErr('syncMystery/divisions', divErr);
+      divisions = divRows || [];
+
+      await WamDb.syncVotes();
     },
 
-    async syncVotesForActiveMystery() {
-      if (!client || !activeMystery) {
-        votesView = { tally: {}, total: 0, current_vote: null };
+    // One round trip for every tally, rather than one per mystery on the page.
+    async syncVotes() {
+      if (!client || activeMysteries.length === 0) {
+        votesByRef = {};
         return;
       }
-      const { data, error } = await client.rpc('get_mystery_votes', {
-        p_ref: activeMystery.ref,
+      const { data, error } = await client.rpc('get_mystery_votes_all', {
         p_voter_key: getVoterKey(),
       });
       if (error) {
-        logErr('syncVotesForActiveMystery', error);
-        votesView = { tally: {}, total: 0, current_vote: null };
+        logErr('syncVotes', error);
+        votesByRef = {};
         return;
       }
-      votesView = {
-        tally: (data && data.tally) || {},
-        total: (data && data.total) || 0,
-        current_vote: (data && data.current_vote) || null,
-      };
+      votesByRef = {};
+      Object.keys(data || {}).forEach(function (ref) {
+        votesByRef[ref] = normalizeVotes(data[ref]);
+      });
     },
 
     // ── Submissions ────────────────────────────────────────
+
+    // One Mystery Mile per person per quarter; Conventional Miles are unlimited.
+    // A database trigger is the real gate — this is the early, friendly warning.
+    async mysterySlotTaken(name) {
+      if (!client || !name || !String(name).trim()) return false;
+      const { data, error } = await client.rpc('mystery_slot_taken', { p_name: String(name) });
+      if (error) {
+        logErr('mysterySlotTaken', error);
+        return false; // never block on a failed pre-check; the trigger still holds
+      }
+      return !!data;
+    },
 
     async addSubmission(sub) {
       if (!client) throw new Error(connectionError || 'Database not initialized.');
@@ -449,6 +558,15 @@
         throw new Error('Submissions are closed right now. Watch for the next round to open.');
       }
       const doc = Object.assign({}, sub);
+
+      // Checked before the photo upload so a duplicate does not leave an orphan
+      // file in storage.
+      if (doc.type === 'myst' && (await WamDb.mysterySlotTaken(doc.name))) {
+        throw new Error(
+          'You have already entered the Mystery Mile this round. Only one Mystery Mile per person — but you can still share as many Conventional Miles as you like.'
+        );
+      }
+
       let photoData = null;
       if (doc.type === 'myst' && doc.photo && String(doc.photo).startsWith('data:')) {
         photoData = doc.photo;
@@ -476,6 +594,10 @@
         if (error.code === '42501') {
           throw new Error('Submissions are closed right now. Watch for the next round to open.');
         }
+        // The one-mystery-per-quarter trigger raises an already-friendly message.
+        if (error.code === 'P0001' && error.message) {
+          throw new Error(error.message);
+        }
         throw error;
       }
       const mapped = mapRow(data);
@@ -502,13 +624,15 @@
       if (local) local.status = status;
     },
 
-    async updateSubmissionDoc(id, patch, status) {
+    async updateSubmissionDoc(id, patch, status, memberId) {
       if (!client) throw new Error(connectionError || 'Database not initialized.');
       const { data: row, error: fetchErr } = await client.from('submissions').select('*').eq('id', id).single();
       if (fetchErr) throw fetchErr;
       const nextDoc = Object.assign({}, row.doc || {}, patch);
       const upd = { doc: nextDoc };
       if (status !== undefined) upd.status = status;
+      // Linking the entry to a roster member is what lets guesses be marked correct.
+      if (memberId !== undefined) upd.member_id = memberId;
       const { error } = await client.from('submissions').update(upd).eq('id', id);
       if (error) throw error;
       const local = submissions.find(function (s) {
@@ -522,28 +646,74 @@
 
     // ── Voting ─────────────────────────────────────────────
 
-    async castVote(choiceSubmissionId) {
+    /**
+     * One guess per shoe. Pass either a roster memberId or a typed otherName —
+     * the database rejects both or neither.
+     */
+    async castVote(ref, choice) {
       if (!client) throw new Error(connectionError || 'Database not initialized.');
-      if (!activeMystery) throw new Error('There is no active Mystery Mile to vote on.');
+      if (!ref) throw new Error('There is no active Mystery Mile to vote on.');
+      const divisionId = (choice && choice.divisionId) || null;
       const { data, error } = await client.rpc('cast_mystery_vote', {
-        p_ref: activeMystery.ref,
-        p_choice: choiceSubmissionId,
+        p_ref: ref,
+        p_member: (choice && choice.memberId) || null,
+        p_other: (choice && choice.otherName) || null,
+        p_division: divisionId,
         p_voter_key: getVoterKey(),
       });
       if (error) throw new Error(error.message || 'Your vote could not be recorded.');
-      votesView = {
-        tally: (data && data.tally) || {},
-        total: (data && data.total) || 0,
-        current_vote: (data && data.current_vote) || null,
-      };
+      if (divisionId) WamDb.setVoterDivision(divisionId);
+      votesByRef[ref] = normalizeVotes(data);
     },
 
-    /** Admin-only: resolve a ballot entry id to its display name for the reveal. */
-    ballotNameFor(id) {
-      const hit = (ballot || []).find(function (b) {
-        return b.id === id;
-      });
-      return hit ? hit.name : null;
+    // ── Admin reporting ────────────────────────────────────
+
+    async getDivisionScoreboard() {
+      if (!client) return [];
+      const { data, error } = await client.rpc('get_division_scoreboard');
+      if (error) {
+        logErr('getDivisionScoreboard', error);
+        return [];
+      }
+      return data || [];
+    },
+
+    // ── Divisions (admin) ──────────────────────────────────
+    // Retiring rather than deleting: votes already cast against a division must keep
+    // counting on the scoreboard even after it stops being offered to voters.
+
+    async addDivision(name) {
+      if (!client) throw new Error(connectionError || 'Database not initialized.');
+      const { error } = await client.from('divisions').insert({ name: String(name).trim() });
+      if (error) {
+        if (error.code === '23505') throw new Error('There is already a division with that name.');
+        throw error;
+      }
+    },
+
+    async renameDivision(id, name) {
+      if (!client) throw new Error(connectionError || 'Database not initialized.');
+      const { error } = await client.from('divisions').update({ name: String(name).trim() }).eq('id', id);
+      if (error) {
+        if (error.code === '23505') throw new Error('There is already a division with that name.');
+        throw error;
+      }
+    },
+
+    async retireDivision(id) {
+      if (!client) throw new Error(connectionError || 'Database not initialized.');
+      const { error } = await client.from('divisions').update({ active: false }).eq('id', id);
+      if (error) throw error;
+    },
+
+    async getWriteInVotes() {
+      if (!client) return [];
+      const { data, error } = await client.rpc('get_write_in_votes');
+      if (error) {
+        logErr('getWriteInVotes', error);
+        return [];
+      }
+      return data || [];
     },
   };
 

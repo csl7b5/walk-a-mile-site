@@ -206,14 +206,42 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text-d
       <div class="admin-tab" onclick="showAdminTab('featured')" id="atab-featured">Featured <span class="admin-tab-badge gold" id="featuredBadge">0</span></div>
       <div class="admin-tab" onclick="showAdminTab('mystery-admin')" id="atab-mystery-admin">Mystery Mile <span class="admin-tab-badge" id="mystBadge">0</span></div>
       <div class="admin-tab" onclick="showAdminTab('all')" id="atab-all">All Submissions</div>
+      <div class="admin-tab" onclick="showAdminTab('scoring')" id="atab-scoring">🏆 Divisions &amp; Scoring</div>
       <div class="admin-tab" onclick="showAdminTab('campaign')" id="atab-campaign">⚙️ Campaign Controls</div>
       <div class="admin-tab" onclick="showAdminTab('admins')" id="atab-admins">👥 Administrators</div>
     </div>
     <div class="admin-content">
       <div class="admin-panel on" id="apanel-pending"><div id="pendingTableWrap"></div></div>
       <div class="admin-panel" id="apanel-featured"><div id="featuredTableWrap"></div></div>
-      <div class="admin-panel" id="apanel-mystery-admin"><div id="mystTableWrap"></div></div>
+      <div class="admin-panel" id="apanel-mystery-admin">
+        <div class="cfg-note" style="margin-bottom:18px;">
+          <p><strong>Every Mystery Mile submitted this quarter is on the public page as soon as it arrives</strong>, shown anonymously alongside the others. Visitors guess each one separately.</p>
+          <p style="margin-top:8px;"><strong>Remove</strong> takes an entry off the page immediately — use it for a blurry photo or a clue that gives too much away. You can put it back afterwards. <strong>Reveal</strong> publishes the name and moves the entry to Past Mystery Milers.</p>
+        </div>
+        <div id="mystTableWrap"></div>
+      </div>
       <div class="admin-panel" id="apanel-all"><div id="allTableWrap"></div></div>
+
+      <div class="admin-panel" id="apanel-scoring">
+        <div id="scoreboardWrap"></div>
+
+        <div class="cfg-card">
+          <h3>Write-in names to review</h3>
+          <p class="cfg-sub">Names people typed that aren't on the department roster. Add anyone genuinely missing to the roster so future quarters can score them; ignore the typos.</p>
+          <div id="writeInWrap"></div>
+        </div>
+
+        <div class="cfg-card">
+          <h3>Divisions</h3>
+          <p class="cfg-sub">These are what voters pick from, and how the scoreboard groups results. Seeded with the department's ten clinical divisions, plus Fellows, Residents &amp; Trainees, Research and Administrative Staff so everyone who votes has somewhere to put themselves. Edit freely — nothing else depends on these names.</p>
+          <div id="divisionWrap"></div>
+          <div class="cfg-grid" style="margin-top:16px;">
+            <div class="fg"><label class="fl" for="newDivisionName">Add a division</label><input class="fi" type="text" id="newDivisionName" placeholder="Cardiothoracic" /></div>
+          </div>
+          <button class="btn" onclick="void addDivision()">Add division</button>
+          <div class="cfg-msg" id="divisionMsg"></div>
+        </div>
+      </div>
 
       <div class="admin-panel" id="apanel-campaign">
         <div class="cfg-card">
@@ -232,7 +260,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text-d
           <div class="cfg-row">
             <div class="cfg-row-text">
               <div class="cfg-row-title">Mystery Mile voting</div>
-              <div class="cfg-row-desc">When open, visitors can guess who this quarter's Mystery Miler is. Close it before you reveal the answer — results stay visible either way.</div>
+              <div class="cfg-row-desc">When open, visitors can guess who each of this quarter's Mystery Milers is. Close it before you reveal the answers — results stay visible either way.</div>
             </div>
             <button type="button" class="switch" id="swVoting" onclick="toggleCampaignFlag('votingOpen')" aria-label="Toggle mystery voting"></button>
           </div>
@@ -240,7 +268,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text-d
 
         <div class="cfg-card">
           <h3>Current quarter</h3>
-          <p class="cfg-sub">The voting ballot lists the Mystery Milers who submitted inside this window. Roll it forward when a new quarter starts so last quarter's names drop off the ballot.</p>
+          <p class="cfg-sub">This window decides which Mystery Miles are on display and who has used up their one entry. Roll it forward when a new quarter starts so last quarter's shoes drop off and everyone gets a fresh entry.</p>
           <div class="cfg-grid">
             <div class="fg"><label class="fl" for="cfgQuarterLabel">Quarter name</label><input class="fi" type="text" id="cfgQuarterLabel" placeholder="Q3 2026" /></div>
             <div class="fg"><label class="fl" for="cfgQuarterStart">Starts</label><input class="fi" type="date" id="cfgQuarterStart" /></div>
@@ -259,9 +287,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text-d
           <div class="cfg-note">
             <ol>
               <li><strong>Start of quarter</strong> — set the quarter name and dates above, then turn <em>Story submissions</em> on and <em>Mystery Mile voting</em> off.</li>
-              <li><strong>Collection closes</strong> — turn <em>Story submissions</em> off. Review the Pending tab, then Feature the stories you want live and pick one Mystery Mile.</li>
+              <li><strong>Collection closes</strong> — turn <em>Story submissions</em> off. Review the Pending tab and Feature the stories you want live. Mystery Miles are already on display; skim them and Remove any that don't work.</li>
               <li><strong>Voting opens</strong> — turn <em>Mystery Mile voting</em> on and announce it.</li>
-              <li><strong>Reveal</strong> — turn <em>Mystery Mile voting</em> off, then use Reveal on the Mystery Mile tab to publish the name.</li>
+              <li><strong>Reveal</strong> — turn <em>Mystery Mile voting</em> off, then use Reveal on each entry on the Mystery Mile tab to publish the names.</li>
             </ol>
           </div>
         </div>
@@ -273,7 +301,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text-d
           <p class="cfg-sub">Adding someone here puts them on the access list. They also need a Supabase Auth login before they can sign in — both steps are required.</p>
           <div class="cfg-grid">
             <div class="fg"><label class="fl" for="newAdminName">Full name</label><input class="fi" type="text" id="newAdminName" placeholder="Lucy Nemcheck" /></div>
-            <div class="fg"><label class="fl" for="newAdminEmail">Yale email</label><input class="fi" type="email" id="newAdminEmail" placeholder="lucy.nemcheck@yale.edu" /></div>
+            <div class="fg"><label class="fl" for="newAdminEmail">Yale email</label><input class="fi" type="email" id="newAdminEmail" placeholder="lucy.nemchek@yale.edu" /></div>
           </div>
           <div class="cfg-actions">
             <button type="button" class="btn btn-sm" onclick="addAdminUser()">Add administrator</button>

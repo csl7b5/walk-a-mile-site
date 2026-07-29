@@ -33,13 +33,43 @@ async function revealMystery(id) {
   if (WamDb.votingOpen() && !confirm('Voting is still open. Reveal anyway?\n\nTip: close voting on the Campaign Controls tab first.')) {
     return;
   }
+  // Matching the revealed name to the roster is what lets the scoreboard mark guesses
+  // right or wrong. A name we can't match still reveals fine, it just can't be scored.
+  const clean = name.trim();
+  const flat = clean.toLowerCase().replace(/\s+/g, ' ');
+  const member = (WamDb.getRoster() || []).find(function (p) {
+    return p.name.toLowerCase().replace(/\s+/g, ' ') === flat;
+  });
+  if (!member && !confirm('“' + clean + '” is not on the department roster.\n\nThe reveal will still work, but guesses for this Mystery Miler cannot be scored by division. Continue?')) {
+    return;
+  }
+
   try {
-    await WamDb.updateSubmissionDoc(id, { revealedName: name.trim() }, 'archived');
+    await WamDb.updateSubmissionDoc(id, { revealedName: clean }, 'archived', member ? member.id : undefined);
     await WamDb.syncAll();
     refreshAdminFromServer();
   } catch (e) {
     alert(e.message || String(e));
   }
+}
+
+/**
+ * Mystery entries are public as soon as they are submitted, so removing one takes it off
+ * the Mystery Mile page straight away. Guesses already cast against it stop counting.
+ */
+async function removeMystery(id) {
+  const entry = getDB().find(function (s) {
+    return s.id === id;
+  });
+  const who = (entry && entry.name) || 'this entry';
+  if (!confirm('Remove ' + who + "'s Mystery Mile from the site?\n\nIt disappears from the Mystery Mile page right away. You can put it back later, and it frees up their one Mystery Mile for this quarter.")) {
+    return;
+  }
+  await updateStatus(id, 'rejected');
+}
+
+async function restoreMystery(id) {
+  await updateStatus(id, 'pending');
 }
 
 function exportData() {
@@ -70,6 +100,7 @@ function showAdminTab(id) {
   document.getElementById('atab-' + id).classList.add('act');
   if (id === 'admins') void buildAdminRoster();
   if (id === 'campaign') buildCampaignPanel();
+  if (id === 'scoring') void buildScoringPanel();
 }
 
 // ── Campaign controls ────────────────────────────────────────
@@ -117,7 +148,9 @@ function buildCampaignPanel() {
   if (!banner || !swSub || !swVote) return;
 
   if (!s) {
-    banner.textContent = 'Campaign settings are unavailable. Make sure the latest database migrations have been applied.';
+    banner.innerHTML =
+      '<strong style="color:var(--red)">Controls unavailable.</strong> ' +
+      esc(WamDb.getSettingsError() || 'The campaign settings could not be loaded.');
     swSub.disabled = true;
     swVote.disabled = true;
     return;
@@ -154,7 +187,10 @@ function buildCampaignPanel() {
 
 async function toggleCampaignFlag(key) {
   const s = WamDb.getSettings();
-  if (!s) return;
+  if (!s) {
+    alert(WamDb.getSettingsError() || 'The campaign settings could not be loaded, so this switch cannot be changed yet.');
+    return;
+  }
   const next = !s[key];
   if (key === 'submissionsOpen' && !next && !confirm('Close story submissions? Nobody will be able to submit until you reopen them.')) return;
   if (key === 'votingOpen' && !next && !confirm('Close Mystery Mile voting? Existing results stay visible.')) return;
@@ -187,7 +223,7 @@ async function saveCampaignQuarter() {
     await WamDb.updateSettings({ quarterLabel: label, quarterStartsAt: startsAt, quarterEndsAt: endsAt });
     await WamDb.syncAll();
     buildCampaignPanel();
-    setCfgMsg('cfgQuarterMsg', 'Saved. The voting ballot now covers ' + label + '.', 'ok');
+    setCfgMsg('cfgQuarterMsg', 'Saved. The Mystery Mile board now covers ' + label + '.', 'ok');
   } catch (e) {
     setCfgMsg('cfgQuarterMsg', e.message || String(e), 'err');
   }
@@ -279,6 +315,176 @@ async function removeAdminUser(email) {
   }
 }
 
+// ── Divisions & scoring ──────────────────────────────────────
+
+async function buildScoringPanel() {
+  await Promise.all([buildScoreboard(), buildWriteIns(), buildDivisionList()]);
+}
+
+/**
+ * Correct guesses per division, per Mystery Miler. A guess counts as correct when it
+ * names the roster member the entry is linked to, so an entry with no link scores
+ * nobody — that case is called out rather than silently reported as zero.
+ */
+async function buildScoreboard() {
+  const wrap = document.getElementById('scoreboardWrap');
+  if (!wrap) return;
+  const rows = await WamDb.getDivisionScoreboard();
+  if (rows.length === 0) {
+    wrap.innerHTML = '<div class="empty-state"><span class="empty-state-icon">🗳</span><p>No guesses have been cast yet.</p></div>';
+    return;
+  }
+
+  const byMystery = {};
+  rows.forEach(function (r) {
+    const key = r.mystery_id;
+    byMystery[key] = byMystery[key] || { name: r.mystery_name, linked: r.mystery_linked, rows: [] };
+    byMystery[key].rows.push(r);
+  });
+
+  // Division totals across the whole quarter, which is what gets announced.
+  const overall = {};
+  rows.forEach(function (r) {
+    const d = r.division_name;
+    overall[d] = overall[d] || { votes: 0, correct: 0 };
+    overall[d].votes += Number(r.votes);
+    overall[d].correct += Number(r.correct_votes);
+  });
+  const leaderboard = Object.keys(overall)
+    .map(function (d) { return { division: d, votes: overall[d].votes, correct: overall[d].correct }; })
+    .sort(function (a, b) { return b.correct - a.correct || b.votes - a.votes; });
+
+  let html =
+    '<div class="cfg-card"><h3>This quarter by division</h3>' +
+    '<p class="cfg-sub">Every guess cast this quarter, and how many of them were right.</p>' +
+    '<table class="sub-table"><thead><tr><th>Division</th><th>Correct</th><th>Guesses</th><th>Accuracy</th></tr></thead><tbody>' +
+    leaderboard
+      .map(function (l, i) {
+        const pct = l.votes ? Math.round((l.correct / l.votes) * 100) : 0;
+        return (
+          '<tr><td class="td-name">' + (i === 0 && l.correct > 0 ? '🏆 ' : '') + esc(l.division) +
+          '</td><td>' + l.correct + '</td><td>' + l.votes + '</td><td>' + pct + '%</td></tr>'
+        );
+      })
+      .join('') +
+    '</tbody></table></div>';
+
+  Object.keys(byMystery).forEach(function (id) {
+    const m = byMystery[id];
+    const sorted = m.rows.slice().sort(function (a, b) {
+      return Number(b.correct_votes) - Number(a.correct_votes) || Number(b.votes) - Number(a.votes);
+    });
+    html +=
+      '<div class="cfg-card"><h3>' + esc(m.name) + '</h3>' +
+      (m.linked
+        ? '<p class="cfg-sub">Guesses for this Mystery Miler, by the voter\'s division.</p>'
+        : '<div class="cfg-note" style="margin-bottom:14px;"><p>⚠️ This entry is not linked to anyone on the department roster, so no guess can be counted as correct. Open the entry on the Mystery Mile tab and use <em>Reveal</em> to set who it was, or add them to the roster.</p></div>') +
+      '<table class="sub-table"><thead><tr><th>Division</th><th>Correct</th><th>Guesses</th></tr></thead><tbody>' +
+      sorted
+        .map(function (r) {
+          return (
+            '<tr><td class="td-name">' + esc(r.division_name) + '</td><td>' +
+            r.correct_votes + '</td><td>' + r.votes + '</td></tr>'
+          );
+        })
+        .join('') +
+      '</tbody></table></div>';
+  });
+
+  wrap.innerHTML = html;
+}
+
+/** Names people typed that aren't on the roster, for the quarterly reconcile. */
+async function buildWriteIns() {
+  const wrap = document.getElementById('writeInWrap');
+  if (!wrap) return;
+  const rows = await WamDb.getWriteInVotes();
+  if (rows.length === 0) {
+    wrap.innerHTML = '<p class="cfg-sub">Nobody has written in a name that isn\'t on the roster.</p>';
+    return;
+  }
+  wrap.innerHTML =
+    '<table class="sub-table"><thead><tr><th>Typed name</th><th>Guesses</th><th>Status</th></tr></thead><tbody>' +
+    rows
+      .map(function (r) {
+        const matched = r.suggested_member_id
+          ? '<span class="chip chip-amber">Roster has ' + esc(r.suggested_member_name) + '</span>'
+          : '<span class="chip chip-gray">Not on the roster</span>';
+        return (
+          '<tr><td class="td-name">' + esc(r.typed_name) + '</td><td>' + r.votes +
+          '</td><td>' + matched + '</td></tr>'
+        );
+      })
+      .join('') +
+    '</tbody></table>';
+}
+
+async function buildDivisionList() {
+  const wrap = document.getElementById('divisionWrap');
+  if (!wrap) return;
+  const divs = WamDb.getDivisions() || [];
+  wrap.innerHTML =
+    (divs.length === 0
+      ? '<p class="cfg-sub">No divisions yet.</p>'
+      : '<table class="sub-table"><thead><tr><th>Division</th><th>Actions</th></tr></thead><tbody>' +
+        divs
+          .map(function (d) {
+            return (
+              '<tr><td class="td-name">' + esc(d.name) + '</td><td><div class="td-actions">' +
+              '<button class="action-pill ap-view" onclick="void renameDivision(\'' + esc(d.id) + '\',\'' + esc(d.name).replace(/'/g, "\\'") + '\')">✎ Rename</button>' +
+              '<button class="action-pill ap-reject" onclick="void retireDivision(\'' + esc(d.id) + '\',\'' + esc(d.name).replace(/'/g, "\\'") + '\')">✕ Retire</button>' +
+              '</div></td></tr>'
+            );
+          })
+          .join('') +
+        '</tbody></table>');
+}
+
+async function addDivision() {
+  const input = document.getElementById('newDivisionName');
+  const name = input ? input.value.trim() : '';
+  if (!name) {
+    setCfgMsg('divisionMsg', 'Type a division name first.', 'err');
+    return;
+  }
+  try {
+    await WamDb.addDivision(name);
+    if (input) input.value = '';
+    setCfgMsg('divisionMsg', 'Added ' + name + '.', 'ok');
+    await WamDb.syncMystery();
+    await buildDivisionList();
+  } catch (e) {
+    setCfgMsg('divisionMsg', e.message || String(e), 'err');
+  }
+}
+
+async function renameDivision(id, current) {
+  const name = prompt('Rename this division. Guesses already recorded against it keep counting.', current);
+  if (!name || !name.trim() || name.trim() === current) return;
+  try {
+    await WamDb.renameDivision(id, name.trim());
+    await WamDb.syncMystery();
+    await buildDivisionList();
+    setCfgMsg('divisionMsg', 'Renamed to ' + name.trim() + '.', 'ok');
+  } catch (e) {
+    setCfgMsg('divisionMsg', e.message || String(e), 'err');
+  }
+}
+
+async function retireDivision(id, name) {
+  if (!confirm('Retire ' + name + '?\n\nIt disappears from the voter\'s division picker. Guesses already cast against it are kept and still show on the scoreboard.')) {
+    return;
+  }
+  try {
+    await WamDb.retireDivision(id);
+    await WamDb.syncMystery();
+    await buildDivisionList();
+    setCfgMsg('divisionMsg', 'Retired ' + name + '.', 'ok');
+  } catch (e) {
+    setCfgMsg('divisionMsg', e.message || String(e), 'err');
+  }
+}
+
 function buildAdminTables() {
   const db = getDB();
   const pending = db.filter(function (s) {
@@ -323,22 +529,34 @@ function buildSubTable(containerId, items) {
         s.type === 'conv'
           ? '<span class="chip chip-navy">Conventional</span>'
           : '<span class="chip chip-gold">Mystery</span>';
-      const statusBadge = {
-        pending: '<span class="chip chip-amber">Pending</span>',
-        featured: '<span class="chip chip-green">Featured</span>',
-        archived: '<span class="chip chip-gray">Archived</span>',
-        rejected: '<span class="chip chip-red">Rejected</span>',
-      }[s.status] || '';
+      // Mystery entries go public the moment they are submitted, so "Pending" would
+      // read as "not live yet" and mislead. Their statuses get their own wording.
+      const statusBadge =
+        (s.type === 'myst'
+          ? {
+              pending: '<span class="chip chip-green">On display</span>',
+              featured: '<span class="chip chip-green">On display</span>',
+              archived: '<span class="chip chip-gray">Revealed</span>',
+              rejected: '<span class="chip chip-red">Removed</span>',
+            }
+          : {
+              pending: '<span class="chip chip-amber">Pending</span>',
+              featured: '<span class="chip chip-green">Featured</span>',
+              archived: '<span class="chip chip-gray">Archived</span>',
+              rejected: '<span class="chip chip-red">Rejected</span>',
+            })[s.status] || '';
       let actions = '';
       if (s.type === 'conv') {
         if (s.status !== 'featured') actions += '<button class="action-pill ap-feature" onclick="void updateStatus(\'' + s.id + '\',\'featured\')">⭐ Feature</button>';
         if (s.status !== 'archived') actions += '<button class="action-pill ap-archive" onclick="void updateStatus(\'' + s.id + '\',\'archived\')">📦 Archive</button>';
         if (s.status !== 'rejected') actions += '<button class="action-pill ap-reject" onclick="void updateStatus(\'' + s.id + '\',\'rejected\')">✕ Reject</button>';
       } else {
-        if (s.status !== 'featured')
-          actions +=
-            '<button class="action-pill ap-feature" onclick="void updateStatus(\'' + s.id + '\',\'featured\')">⭐ Set as the Live Mystery</button>';
-        if (s.status !== 'archived') actions += '<button class="action-pill ap-archive" onclick="void revealMystery(\'' + s.id + '\')">🎉 Reveal</button>';
+        if (s.status === 'rejected') {
+          actions += '<button class="action-pill ap-feature" onclick="void restoreMystery(\'' + s.id + '\')">↩ Put back on display</button>';
+        } else {
+          if (s.status !== 'archived') actions += '<button class="action-pill ap-archive" onclick="void revealMystery(\'' + s.id + '\')">🎉 Reveal</button>';
+          actions += '<button class="action-pill ap-reject" onclick="void removeMystery(\'' + s.id + '\')">✕ Remove</button>';
+        }
       }
       actions += '<button class="action-pill ap-view" onclick="openAdminModal(\'' + s.id + '\')">👁 View</button>';
       return (

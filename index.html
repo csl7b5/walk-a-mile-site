@@ -363,6 +363,20 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text-d
 .closed-card p{font-size:14px;color:var(--text-mid);line-height:1.7;margin-bottom:8px;}
 .closed-card .cc-acts{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:26px;}
 .vote-closed-note{background:var(--navy-light);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:13px 16px;font-size:12.5px;color:var(--text-mid);line-height:1.6;margin-bottom:18px;}
+.myst-intro{background:white;border:1.5px solid var(--border);border-radius:var(--r-xl);padding:22px 28px;margin-bottom:26px;}
+.mi-count{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--navy-deep);font-weight:600;margin-bottom:6px;}
+.myst-intro p{font-size:12.5px;color:var(--text-muted);line-height:1.65;}
+.mtm-guess{padding:22px 32px;border-top:1.5px solid var(--border);background:#fbfcfe;}
+.mg-h{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--navy);font-family:'DM Mono',monospace;margin-bottom:11px;}
+.mg-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.mg-row .fsel-w,.mg-row .fi{flex:1;min-width:210px;}
+.mg-note{font-size:12px;color:var(--text-mid);margin-top:11px;line-height:1.55;}
+.mg-empty{font-size:12.5px;color:var(--text-muted);}
+.vr-h{font-size:11px;font-weight:600;color:var(--navy);margin-bottom:13px;text-transform:uppercase;letter-spacing:.06em;}
+.vr-tag{font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;background:var(--navy-light);color:var(--navy);border-radius:5px;padding:2px 6px;margin-left:6px;font-family:'DM Mono',monospace;}
+.mi-div{margin-top:20px;padding-top:18px;border-top:1.5px solid var(--border);max-width:420px;}
+.mi-div .fl{display:block;margin-bottom:7px;}
+@media(max-width:640px){.mg-row .btn{width:100%;}}
 
 /* ============================================================
    ANIMATIONS
@@ -480,7 +494,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text-d
         <div class="hac" onclick="showPage('submit');startJourney('myst')">
           <span class="hac-icon">👟</span>
           <div class="hac-h">Enter the Mystery Mile</div>
-          <div class="hac-p">Stay anonymous. Upload your shoe photo, drop three clues, and let the department guess who you are. One mystery revealed each month.</div>
+          <div class="hac-p">Stay anonymous. Upload your shoe photo, drop three clues, and let the department guess who you are. One entry per person each round.</div>
         </div>
       </div>
     </div>
@@ -525,7 +539,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text-d
           <div class="fc-tag">Featured Story</div>
           <div class="fc-h">Conventional Mile</div>
           <div class="fc-p">Tell your story in your own words. Choose a theme, answer three questions. Your named feature on the intranet and newsletter.</div>
-          <div class="fc-det">3 steps · ~5 min · Named feature</div>
+          <div class="fc-det">3 steps · ~5 min · Share as many as you like</div>
         </div>
         <div class="fcard" onclick="startJourney('myst')">
           <div class="fcard-bg"></div>
@@ -533,7 +547,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text-d
           <div class="fc-tag">Anonymous Contest</div>
           <div class="fc-h">Mystery Mile</div>
           <div class="fc-p">Stay anonymous. Upload your shoe photo and three clues. Let the whole department guess who you are.</div>
-          <div class="fc-det">3 steps · ~4 min · Anonymous</div>
+          <div class="fc-det">3 steps · ~4 min · Anonymous · One per person</div>
         </div>
       </div>
     </div>
@@ -594,7 +608,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text-d
         <div class="jbadge"><span>👟</span><div><div class="jb-lbl">Journey</div><div class="jb-name">Mystery Mile</div></div><button class="jb-chg" onclick="resetToFork()">Change</button></div>
         <div class="s-eye">Section 1 — About You</div>
         <h2 class="s-ttl">First, a little about you</h2>
-        <p class="s-sub">Your name won't appear in the mystery feature — this is for our records only.</p>
+        <p class="s-sub">Your name won't appear in the mystery feature — this is for our records only, and to keep it to one Mystery Mile per person each round.</p>
         <div class="fg"><label class="fl">Full Name <span class="req">*</span></label><input class="fi" id="mName" placeholder="Dr. Jane Smith" /></div>
         <div class="fg"><label class="fl">Campus <span class="req">*</span></label><div class="fsel-w"><select class="fsel" id="mCampus"><option value="">Select your campus…</option><option>Yale New Haven Hospital — York Street</option><option>Yale New Haven Hospital — Saint Raphael</option><option>Bridgeport Hospital</option><option>Greenwich Hospital</option><option>Lawrence + Memorial Hospital</option><option>Westerly Hospital</option><option>Other</option></select></div></div>
         <div class="fg"><label class="fl">Role <span class="req">*</span></label>
@@ -675,30 +689,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text-d
 <div class="page" id="page-mystery">
   <div class="mystery-hero">
     <h1>Mystery <em>Mile</em></h1>
-    <p>Three clues. One shoe. Can you guess who it is?</p>
+    <p>Three clues per shoe. Can you match them to your colleagues?</p>
   </div>
   <div class="mystery-content">
-
-    <!-- This month -->
-    <div class="mystery-this-month" id="mysteryThisMonth">
-      <!-- Populated by JS -->
-    </div>
-
-    <!-- Voting -->
-    <div class="vote-section" id="voteSection">
-      <h3>Who Do You Think It Is?</h3>
-      <p>Make your guess below. Results reveal at the end of the round.</p>
-      <div class="vote-options" id="voteOptions"></div>
-      <button class="btn" onclick="castVote()" id="voteBtn">Cast My Vote →</button>
-      <div class="vote-results" id="voteResults">
-        <div class="divider"></div>
-        <p style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em;">Current Guesses</p>
-        <div id="vrBars"></div>
-      </div>
-    </div>
-
-    <!-- Reveal -->
-    <div class="reveal-card" id="revealCard"></div>
+    <div id="mysteryIntro"></div>
+    <!-- One card per Mystery Mile submitted this quarter. Populated by JS. -->
+    <div id="mysteryBoard"></div>
   </div>
 
   <!-- Past mysteries -->
@@ -769,10 +765,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text-d
 
 function getDB() {
   return WamDb.getSubmissions();
-}
-
-function getVotes() {
-  return WamDb.getVotes();
 }
 
 function esc(v) {
@@ -928,10 +920,10 @@ function buildHubStats(){
   const db=getDB();
   const pub=(s)=>(s.status==='featured'||s.status==='archived');
   const conv=db.filter(s=>s.type==='conv'&&pub(s));
-  // The live mystery is deliberately not in the public submissions feed, so count
-  // the revealed ones and add the current round if there is one running.
+  // Live mysteries are deliberately not in the public submissions feed, so count
+  // the revealed ones and add however many are running this round.
   const revealedMyst=db.filter(s=>s.type==='myst'&&s.status==='archived').length;
-  const liveMyst=WamDb.getActiveMystery()?1:0;
+  const liveMyst=(WamDb.getActiveMysteries()||[]).length;
   animNum('statMiles',conv.length);
   animNum('statMysteries',revealedMyst+liveMyst);
 }
@@ -1045,145 +1037,213 @@ function closeModal(e){
 }
 
 // ── MYSTERY PAGE ──────────────────────────────────────────────
+/**
+ * Every Mystery Mile submitted this quarter is on screen at once, and each shoe is
+ * guessed against the whole department roster rather than a shortlist.
+ *
+ * Cards are rendered in exactly the order the server sent them. That order comes from
+ * each entry's random public_ref, so it reveals nothing about who submitted when —
+ * re-sorting this list by anything a visitor could compute would give the game away.
+ */
 function buildMysteryPage(){
-  const active=WamDb.getActiveMystery();
-  const mm=document.getElementById('mysteryThisMonth');
-  const vs=document.getElementById('voteSection');
+  const list=WamDb.getActiveMysteries()||[];
+  const intro=document.getElementById('mysteryIntro');
+  const board=document.getElementById('mysteryBoard');
   const label=quarterLabel();
 
-  if(!active){
+  if(list.length===0){
     const invite=submissionsOpen()
-      ? `Check back soon — or <button class="btnlnk" onclick="showPage('submit');startJourney('myst')">submit yours</button>!`
+      ? `Be the first — <button class="btnlnk" onclick="showPage('submit');startJourney('myst')">submit yours</button>!`
       : `Check back when the next round is announced.`;
-    mm.innerHTML=`<div style="padding:48px 32px;text-align:center;"><span style="font-size:48px;display:block;margin-bottom:16px;opacity:.3">👟</span><p style="font-size:14px;color:var(--text-muted);">No Mystery Mile running right now.<br>${invite}</p></div>`;
-    vs.style.display='none';
+    intro.innerHTML='';
+    board.innerHTML=`<div class="mystery-this-month"><div style="padding:48px 32px;text-align:center;"><span style="font-size:48px;display:block;margin-bottom:16px;opacity:.3">👟</span><p style="font-size:14px;color:var(--text-muted);">No Mystery Miles have been submitted for ${esc(label)} yet.<br>${invite}</p></div></div>`;
     buildPastMysteries();
     return;
   }
 
-  vs.style.display='block';
-  const shoeHTML=active.photo
-    ?`<div class="mtm-shoe-frame"><img src="${esc(active.photo)}" alt="Mystery shoe" /></div>`
-    :`<div class="mtm-shoe-frame">👟</div>`;
-
-  mm.innerHTML=`
-    <div class="mtm-header">
-      ${shoeHTML}
-      <div class="mtm-info">
-        <div class="mtm-label">${esc(label)} Mystery Mile · Set #${esc(active.promptSet||'?')}</div>
-        <div class="mtm-title">Who walks in these shoes?</div>
-        <div class="mtm-timer">${votingOpen()?'🗳 Voting is open · Cast your guess below':'🔒 Voting is closed · Reveal coming soon'}</div>
-      </div>
-    </div>
-    <div class="mtm-clues">
-      ${(active.promptQuestions.length?active.promptQuestions:['Clue 1','Clue 2','Clue 3']).map((q,i)=>`
-        <div class="mtm-clue">
-          <div class="mtm-clue-num">${i+1}</div>
-          <div>
-            <div class="mtm-clue-q">${esc(q)}</div>
-            <div class="mtm-clue-a">${esc(active.answers[i]||'—')}</div>
-          </div>
-        </div>`).join('')}
+  const n=list.length;
+  intro.innerHTML=`
+    <div class="myst-intro">
+      <div class="mi-count">${n} mystery ${n===1?'shoe':'shoes'} this round</div>
+      <p>${votingOpen()
+        ? `Each shoe belongs to someone in the Department of Anesthesiology. Guess as many as you like — one guess per shoe, and you can change your mind while voting is open.`
+        : `Voting has closed for ${esc(label)}. Here is where the guesses landed.`}</p>
+      ${votingOpen()?divisionPickerHTML():''}
     </div>`;
 
-  buildBallot();
+  buildRosterList();
+  board.innerHTML=list.map((m,i)=>mysteryCardHTML(m,i,n)).join('');
   buildPastMysteries();
 }
 
-/**
- * The ballot is every Mystery Miler who submitted during the current quarter,
- * shuffled server-side. Choices come from the database rather than the public
- * submissions feed so the live mystery's identity never reaches the browser.
- */
-function buildBallot(){
-  const ballot=WamDb.getBallot()||[];
-  const vopts=document.getElementById('voteOptions');
-  const btn=document.getElementById('voteBtn');
-  const intro=document.querySelector('#voteSection > p');
-  const open=votingOpen();
-  const votes=getVotes();
-  const myVote=votes.current_vote;
-
-  document.querySelectorAll('#voteSection .vote-closed-note').forEach(n=>n.remove());
-
-  if(intro){
-    intro.textContent=open
-      ? `Everyone below submitted a Mystery Mile this ${quarterLabel()==='this quarter'?'quarter':'round'}. One of them is wearing those shoes.`
-      : 'Voting has closed for this round. Here is where the guesses landed.';
-  }
-
-  if(!open){
-    const note=document.createElement('div');
-    note.className='vote-closed-note';
-    note.textContent='🔒 Voting is closed. The reveal will be posted here and announced by the Office of Collaborative Excellence.';
-    vopts.parentNode.insertBefore(note,vopts);
-    vopts.innerHTML='';
-    vopts.style.display='none';
-    if(btn)btn.style.display='none';
-    showVoteResults();
-    return;
-  }
-
-  vopts.style.display='';
-  if(btn){btn.style.display='';btn.textContent=myVote?'Update My Vote':'Cast My Vote →';}
-
-  if(ballot.length===0){
-    vopts.innerHTML=`<p style="font-size:13px;color:var(--text-muted);grid-column:1/-1">The ballot is empty — no Mystery Miles were submitted during ${esc(quarterLabel())} yet.</p>`;
-    return;
-  }
-
-  selectedVoteId=myVote||null;
-  vopts.innerHTML=ballot.map(p=>`
-    <div class="vote-option ${myVote===p.id?'selected':''}" onclick="selectVote('${esc(p.id)}',this)">
-      <div class="vo-avatar">${roleEmoji(p.role)}</div>
-      <div><div class="vo-name">${esc(p.name)}</div><div class="vo-role">${esc(p.role)}</div></div>
-    </div>`).join('');
-
-  if(myVote)showVoteResults();
-}
-
-let selectedVoteId=null;
-function selectVote(id,el){
-  document.querySelectorAll('.vote-option').forEach(v=>v.classList.remove('selected'));
-  el.classList.add('selected');
-  selectedVoteId=id;
-}
-
-function castVote(){
-  if(!votingOpen()){alert('Voting is closed right now.');return;}
-  if(!selectedVoteId){alert('Please select who you think it is!');return;}
-  if(!WamDb.isReady()){alert('Walk a Mile voting is unavailable right now.');return;}
-  const btn=document.getElementById('voteBtn');
-  if(btn)btn.disabled=true;
-  void WamDb.castVote(selectedVoteId)
-    .then(function(){showVoteResults();if(btn)btn.textContent='Update My Vote';})
-    .catch(function(e){alert(e.message||String(e));})
-    .finally(function(){if(btn)btn.disabled=false;});
-}
-
-function showVoteResults(){
-  const vr=document.getElementById('voteResults');
-  const votes=getVotes();
-  const tally=votes.tally||{};
-  const entries=Object.entries(tally);
-  const bars=document.getElementById('vrBars');
-  if(entries.length===0){
-    if(votingOpen()){vr.classList.remove('on');return;}
-    vr.classList.add('on');
-    bars.innerHTML=`<p style="font-size:13px;color:var(--text-muted)">No guesses were cast this round.</p>`;
-    return;
-  }
-  vr.classList.add('on');
-  const total=votes.total||entries.reduce((a,[,n])=>a+n,0)||1;
-  const sorted=entries.sort((a,b)=>b[1]-a[1]);
-  bars.innerHTML=sorted.map(([id,count])=>{
-    const pct=Math.round(count/total*100);
-    const name=WamDb.ballotNameFor(id)||'A colleague';
-    return `<div class="vr-bar-row">
-      <div class="vr-name"><span>${esc(name)}${votes.current_vote===id?' · your guess':''}</span><span>${pct}%</span></div>
-      <div class="vr-bar-bg"><div class="vr-bar-fill" style="width:${pct}%"></div></div>
+function divisionPickerHTML(){
+  const divs=WamDb.getDivisions()||[];
+  if(divs.length===0)return '';
+  const mine=WamDb.getVoterDivision();
+  return `
+    <div class="mi-div">
+      <label class="fl" for="voterDivision">Your division</label>
+      <div class="fsel-w">
+        <select class="fsel" id="voterDivision" onchange="onDivisionChange()">
+          <option value="">Select your division…</option>
+          ${divs.map(d=>`<option value="${esc(d.id)}"${mine===d.id?' selected':''}>${esc(d.name)}</option>`).join('')}
+          <option value="none"${mine==='none'?' selected':''}>Prefer not to say</option>
+        </select>
+      </div>
+      <p class="mg-note">Recorded with each guess so we can celebrate the division that guesses best. It is never linked to your name.</p>
     </div>`;
-  }).join('');
+}
+
+function onDivisionChange(){
+  const sel=document.getElementById('voterDivision');
+  if(sel)WamDb.setVoterDivision(sel.value);
+}
+
+/** One shared datalist gives every guess box the department roster to autocomplete. */
+function buildRosterList(){
+  let dl=document.getElementById('wamRoster');
+  if(!dl){
+    dl=document.createElement('datalist');
+    dl.id='wamRoster';
+    document.body.appendChild(dl);
+  }
+  dl.innerHTML=(WamDb.getRoster()||[]).map(p=>`<option value="${esc(p.name)}"></option>`).join('');
+}
+
+function normName(s){return String(s||'').toLowerCase().replace(/\s+/g,' ').trim();}
+
+function matchRoster(typed){
+  const n=normName(typed);
+  if(!n)return null;
+  return (WamDb.getRoster()||[]).find(p=>normName(p.name)===n)||null;
+}
+
+function mysteryCardHTML(m,idx,total){
+  const shoe=m.photo
+    ?`<div class="mtm-shoe-frame"><img src="${esc(m.photo)}" alt="Mystery shoe ${idx+1}" /></div>`
+    :`<div class="mtm-shoe-frame">👟</div>`;
+  const questions=m.promptQuestions.length?m.promptQuestions:['Clue 1','Clue 2','Clue 3'];
+  return `
+    <div class="mystery-this-month myst-card" data-ref="${esc(m.ref)}">
+      <div class="mtm-header">
+        ${shoe}
+        <div class="mtm-info">
+          <div class="mtm-label">Shoe ${idx+1} of ${total} · Set #${esc(m.promptSet||'?')}</div>
+          <div class="mtm-title">Who walks in these shoes?</div>
+          <div class="mtm-timer">${votingOpen()?'🗳 Voting is open':'🔒 Voting is closed'}</div>
+        </div>
+      </div>
+      <div class="mtm-clues">
+        ${questions.map((q,i)=>`
+          <div class="mtm-clue">
+            <div class="mtm-clue-num">${i+1}</div>
+            <div>
+              <div class="mtm-clue-q">${esc(q)}</div>
+              <div class="mtm-clue-a">${esc(m.answers[i]||'—')}</div>
+            </div>
+          </div>`).join('')}
+      </div>
+      ${guessAreaHTML(m)}
+    </div>`;
+}
+
+function guessAreaHTML(m){
+  const votes=WamDb.getVotesFor(m.ref);
+  const mine=votes.current_vote;
+
+  if(!votingOpen()){
+    const yours=mine?` Your guess was ${esc(mine.label)}.`:'';
+    return `<div class="mtm-guess">
+      <div class="vote-closed-note">🔒 Voting is closed for this round.${yours} The reveal will be announced by the Office of Collaborative Excellence.</div>
+      ${resultsHTML(votes)}
+    </div>`;
+  }
+
+  const ref=esc(m.ref);
+  return `<div class="mtm-guess">
+    <div class="mg-h">Your guess</div>
+    <div class="mg-row">
+      <input class="fi" id="mg-${ref}" list="wamRoster" autocomplete="off" spellcheck="false"
+             placeholder="Start typing a colleague's name…" aria-label="Your guess for this shoe"
+             value="${mine?esc(mine.label):''}" oninput="onGuessInput('${ref}')" />
+      <button class="btn" onclick="castVote('${ref}',this)">${mine?'Update Guess':'Save Guess'}</button>
+    </div>
+    <div class="mg-note" id="mgfb-${ref}">${guessFeedback(mine?mine.label:'')}</div>
+    ${resultsHTML(votes)}
+  </div>`;
+}
+
+/**
+ * Anyone can be typed in, not just the roster. An unrecognised name is kept as a
+ * write-in for the admins to reconcile rather than being rejected — the roster is a
+ * snapshot and will always be missing somebody.
+ */
+function guessFeedback(typed){
+  const t=String(typed||'').trim();
+  if(!t)return 'Pick from the department list, or type any name if they are not on it.';
+  const hit=matchRoster(t);
+  if(hit)return `✓ ${esc(hit.name)}${hit.category?' · '+esc(hit.category):''}`;
+  return `“${esc(t)}” is not on the department list. We will save it as a write-in for the team to review.`;
+}
+
+function onGuessInput(ref){
+  const input=document.getElementById('mg-'+ref);
+  const fb=document.getElementById('mgfb-'+ref);
+  if(input&&fb)fb.innerHTML=guessFeedback(input.value);
+}
+
+/** The crowd's guesses stay hidden until you commit your own, so nobody is anchored. */
+function resultsHTML(votes){
+  if(!votes.current_vote&&votingOpen())return '';
+  const entries=votes.entries||[];
+  if(entries.length===0){
+    return `<div class="vote-results on"><div class="divider"></div><p class="mg-empty">No guesses cast for this shoe yet.</p></div>`;
+  }
+  const total=votes.total||entries.reduce((a,e)=>a+e.n,0)||1;
+  const myKey=votes.current_vote?votes.current_vote.key:null;
+  return `<div class="vote-results on">
+    <div class="divider"></div>
+    <p class="vr-h">Current guesses · ${total} vote${total===1?'':'s'}</p>
+    ${entries.map(e=>{
+      const pct=Math.round(e.n/total*100);
+      return `<div class="vr-bar-row">
+        <div class="vr-name"><span>${esc(e.label||'A colleague')}${e.write_in?' <span class="vr-tag">write-in</span>':''}${myKey===e.key?' · your guess':''}</span><span>${pct}%</span></div>
+        <div class="vr-bar-bg"><div class="vr-bar-fill" style="width:${pct}%"></div></div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function castVote(ref,btn){
+  if(!votingOpen()){alert('Voting is closed right now.');return;}
+  const input=document.getElementById('mg-'+ref);
+  const typed=input?input.value.trim():'';
+  if(!typed){alert('Please type or pick who you think it is.');if(input)input.focus();return;}
+  const sel=document.getElementById('voterDivision');
+  const division=sel?sel.value:'';
+  if(!division){
+    alert('Please choose your division first — the picker is at the top of this page.');
+    if(sel){sel.focus();sel.scrollIntoView({block:'center',behavior:'smooth'});}
+    return;
+  }
+  if(!WamDb.isReady()){alert('Walk a Mile voting is unavailable right now.');return;}
+  const hit=matchRoster(typed);
+  const choice={divisionId:division==='none'?null:division};
+  if(hit)choice.memberId=hit.id; else choice.otherName=typed;
+  if(btn)btn.disabled=true;
+  void WamDb.castVote(ref,choice)
+    .then(function(){redrawGuessArea(ref);})
+    .catch(function(e){alert(e.message||String(e));if(btn)btn.disabled=false;});
+}
+
+/** Redraw just this shoe's guess panel, so voting doesn't jump the page around. */
+function redrawGuessArea(ref){
+  const card=document.querySelector('.myst-card[data-ref="'+ref+'"]');
+  if(!card)return;
+  const m=(WamDb.getActiveMysteries()||[]).find(function(x){return x.ref===ref;});
+  const old=card.querySelector('.mtm-guess');
+  if(!m||!old)return;
+  old.outerHTML=guessAreaHTML(m);
 }
 
 function buildPastMysteries(){
@@ -1449,10 +1509,11 @@ function setMS(n){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function curMS(){const cs=document.querySelectorAll('#sv-myst .scard');for(let i=0;i<cs.length;i++)if(cs[i].classList.contains('on'))return i+1;return 1;}
-function mGo(n){
+async function mGo(n){
   const c=curMS();
   if(n>c){
-    if(c===1){if(!document.getElementById('mName').value.trim()){alert('Please enter your name.');return;}if(!document.getElementById('mCampus').value){alert('Please select your campus.');return;}if(!mRole){alert('Please select your role.');return;}}
+    if(c===1){const nm=document.getElementById('mName').value.trim();if(!nm){alert('Please enter your name.');return;}if(!document.getElementById('mCampus').value){alert('Please select your campus.');return;}if(!mRole){alert('Please select your role.');return;}
+      if(await WamDb.mysterySlotTaken(nm)){alert('It looks like you have already entered the Mystery Mile this round.\n\nOnly one Mystery Mile per person each round, so everyone gets a fair turn at being guessed. You can still share as many Conventional Miles as you like.');return;}}
     if(c===2&&mSet===null){alert('Please choose a prompt set.');return;}
     if(c===3&&!photoDataURL){alert('Please upload your shoe photo.');return;}
     if(n===2)buildMSets();
