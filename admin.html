@@ -125,6 +125,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text-d
 .cfg-card{background:white;border:1.5px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow);padding:26px 28px;margin-bottom:22px;max-width:860px;}
 .cfg-card h3{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--navy-deep);font-weight:600;margin-bottom:4px;}
 .cfg-card .cfg-sub{font-size:12.5px;color:var(--text-muted);line-height:1.6;margin-bottom:20px;}
+.cfg-btn-row{display:flex;gap:10px;flex-wrap:wrap;}
 .cfg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:20px;}
 .cfg-row{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding:16px 0;border-top:1.5px solid var(--border);}
 .cfg-row:last-of-type{border-bottom:1.5px solid var(--border);}
@@ -176,7 +177,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text-d
     </div>
     <div class="admin-header-actions">
       <button type="button" class="btn btn-ghost btn-sm" id="adminSignOutBtn" style="display:none" onclick="adminSignOut()">Sign out</button>
-      <button type="button" class="btn btn-gold btn-sm" id="adminExportBtn" style="visibility:hidden" onclick="exportData()">⬇ Export All Data</button>
+      <button type="button" class="btn btn-gold btn-sm" id="adminExportBtn" style="visibility:hidden" onclick="exportData()">⬇ Export Submissions</button>
     </div>
   </div>
   <div class="admin-login-shell" id="adminLoginShell">
@@ -224,6 +225,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text-d
 
       <div class="admin-panel" id="apanel-scoring">
         <div id="scoreboardWrap"></div>
+
+        <div class="cfg-card">
+          <h3>Download the data</h3>
+          <p class="cfg-sub">CSV files, ready to open in Excel. <strong>Guesses</strong> is the detailed one — a row per guess with the voter, their division, what they guessed, and whether it was right.</p>
+          <div class="cfg-btn-row">
+            <button class="btn btn-gold" onclick="void exportVotes()">⬇ Guesses (detailed)</button>
+            <button class="btn" onclick="void exportScoreboard()">⬇ Division scoreboard</button>
+            <button class="btn" onclick="exportData()">⬇ All submissions</button>
+            <button class="btn" onclick="void exportWriteIns()">⬇ Write-in names</button>
+          </div>
+          <p class="cfg-sub" style="margin-top:14px;">Voter names appear in the Guesses export only. They are never shown on the public site, and the Mystery Miler never sees who guessed them.</p>
+        </div>
 
         <div class="cfg-card">
           <h3>Write-in names to review</h3>

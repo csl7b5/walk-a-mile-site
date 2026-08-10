@@ -72,21 +72,120 @@ async function restoreMystery(id) {
   await updateStatus(id, 'pending');
 }
 
-function exportData() {
-  const db = getDB();
-  const csv = ['Type,Name,Role,Campus,Theme,Status,Date,...Answers'].concat(
-    db.map(function (s) {
-      return [s.type, s.name || 'Anonymous', s.role, s.campus, s.theme || 'Mystery', s.status, s.submittedAt, ...(s.answers || [])]
+// ── CSV export ───────────────────────────────────────────────
+
+/**
+ * Excel decides a file is UTF-8 only if it starts with a byte-order mark; without it,
+ * names like "Muñoz" arrive mangled. A Blob rather than a data: URL because the vote
+ * export can be far larger than a URL is allowed to be.
+ */
+function downloadCSV(filename, rows) {
+  const body = rows
+    .map(function (row) {
+      return row
         .map(function (v) {
-          return '"' + String(v || '').replace(/"/g, '""') + '"';
+          if (v === null || v === undefined) return '';
+          const s = String(v);
+          // A leading =, +, - or @ is executed as a formula when the file is opened.
+          const safe = /^[=+\-@]/.test(s) ? "'" + s : s;
+          return '"' + safe.replace(/"/g, '""') + '"';
         })
         .join(',');
     })
-  ).join('\n');
+    .join('\r\n');
+
+  const blob = new Blob(['\uFEFF' + body], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-  a.download = 'walk-a-mile-submissions.csv';
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
   a.click();
+  document.body.removeChild(a);
+  setTimeout(function () {
+    URL.revokeObjectURL(url);
+  }, 1000);
+}
+
+function stamp() {
+  const d = new Date();
+  return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+}
+
+function exportData() {
+  const db = getDB();
+  const rows = [['Type', 'Mile number', 'Name', 'Role', 'Campus', 'Theme', 'Status',
+                 'Submitted', 'Revealed as', 'Answer 1', 'Answer 2', 'Answer 3']];
+  db.forEach(function (s) {
+    const a = s.answers || [];
+    rows.push([
+      s.type === 'myst' ? 'Mystery Mile' : 'Conventional Mile',
+      s.mileNumber || '',
+      s.type === 'myst' ? 'Anonymous' : s.name || '',
+      s.role || '',
+      s.campus || '',
+      s.theme || (s.type === 'myst' ? 'Mystery · Set #' + (s.promptSet || '?') : ''),
+      s.status || '',
+      s.submittedAt || '',
+      s.revealedName || '',
+      a[0] || '', a[1] || '', a[2] || '',
+    ]);
+  });
+  downloadCSV('walk-a-mile-submissions-' + stamp() + '.csv', rows);
+}
+
+/** One row per guess: who guessed, their division, what they guessed, and if it was right. */
+async function exportVotes() {
+  const data = await WamDb.getVoteExport();
+  if (data.length === 0) {
+    alert('No guesses have been cast yet, so there is nothing to export.');
+    return;
+  }
+  const rows = [['Quarter', 'Mystery Miler', 'Revealed', 'Voter', 'Voter on roster',
+                 'Voter division', 'Guess', 'Guess on roster', 'Correct', 'Guessed at']];
+  data.forEach(function (r) {
+    rows.push([
+      r.quarter, r.mystery_miler, r.mystery_revealed ? 'Yes' : 'No',
+      r.voter_name, r.voter_on_roster ? 'Yes' : 'No', r.voter_division,
+      r.guess, r.guess_on_roster ? 'Yes' : 'No',
+      // Null means the entry has nobody linked, so correctness is unknown rather than false.
+      r.is_correct === null ? 'Not scored' : r.is_correct ? 'Yes' : 'No',
+      r.guessed_at,
+    ]);
+  });
+  downloadCSV('walk-a-mile-guesses-' + stamp() + '.csv', rows);
+}
+
+/** The division totals as shown on screen, one row per Mystery Miler per division. */
+async function exportScoreboard() {
+  const data = await WamDb.getDivisionScoreboard();
+  if (data.length === 0) {
+    alert('No guesses have been cast yet, so there is nothing to export.');
+    return;
+  }
+  const rows = [['Mystery Miler', 'Linked to roster', 'Division', 'Correct guesses',
+                 'Total guesses', 'Accuracy %']];
+  data.forEach(function (r) {
+    const votes = Number(r.votes);
+    rows.push([
+      r.mystery_name, r.mystery_linked ? 'Yes' : 'No', r.division_name,
+      r.correct_votes, votes, votes ? Math.round((Number(r.correct_votes) / votes) * 100) : 0,
+    ]);
+  });
+  downloadCSV('walk-a-mile-scoreboard-' + stamp() + '.csv', rows);
+}
+
+async function exportWriteIns() {
+  const data = await WamDb.getWriteInVotes();
+  if (data.length === 0) {
+    alert('Nobody has written in a name that is not on the roster.');
+    return;
+  }
+  const rows = [['Typed name', 'Guesses', 'Similar name already on roster']];
+  data.forEach(function (r) {
+    rows.push([r.typed_name, r.votes, r.suggested_member_name || '']);
+  });
+  downloadCSV('walk-a-mile-write-ins-' + stamp() + '.csv', rows);
 }
 
 function showAdminTab(id) {

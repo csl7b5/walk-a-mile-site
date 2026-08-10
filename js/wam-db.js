@@ -6,6 +6,7 @@
 (function () {
   const VOTER_KEY = 'wam_voter_key_v1';
   const DIVISION_KEY = 'wam_voter_division_v1';
+  const VOTER_NAME_KEY = 'wam_voter_name_v1';
   const DOC_MAX_CLIENT = 590000;
 
   let client = null;
@@ -22,6 +23,24 @@
 
   function logErr(...args) {
     console.error('[WamDb]', ...args);
+  }
+
+  // Private browsing throws on localStorage; remembering these is a convenience, so a
+  // failure just means the visitor types them again.
+  function readLocal(key) {
+    try {
+      return window.localStorage.getItem(key) || '';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function writeLocal(key, value) {
+    try {
+      window.localStorage.setItem(key, value || '');
+    } catch (e) {
+      /* nothing to do; the value still rides along with the vote itself */
+    }
   }
 
   function normalizeVotes(data) {
@@ -204,19 +223,20 @@
 
     /** The division this browser last voted with, so we only ask once. */
     getVoterDivision() {
-      try {
-        return window.localStorage.getItem(DIVISION_KEY) || '';
-      } catch (e) {
-        return '';
-      }
+      return readLocal(DIVISION_KEY);
     },
 
     setVoterDivision(id) {
-      try {
-        window.localStorage.setItem(DIVISION_KEY, id || '');
-      } catch (e) {
-        /* private browsing; the division still rides along with each vote */
-      }
+      writeLocal(DIVISION_KEY, id);
+    },
+
+    /** Likewise the voter's own name — convenience only; the server re-checks it. */
+    getVoterName() {
+      return readLocal(VOTER_NAME_KEY);
+    },
+
+    setVoterName(name) {
+      writeLocal(VOTER_NAME_KEY, name);
     },
 
     getConnectionError() {
@@ -647,8 +667,9 @@
     // ── Voting ─────────────────────────────────────────────
 
     /**
-     * One guess per shoe. Pass either a roster memberId or a typed otherName —
-     * the database rejects both or neither.
+     * One guess per person per shoe, and final once cast. For both who-you-are and
+     * who-you-think-it-is, pass either a roster id or a typed name — the database
+     * rejects both or neither.
      */
     async castVote(ref, choice) {
       if (!client) throw new Error(connectionError || 'Database not initialized.');
@@ -660,9 +681,10 @@
         p_other: (choice && choice.otherName) || null,
         p_division: divisionId,
         p_voter_key: getVoterKey(),
+        p_voter_member: (choice && choice.voterMemberId) || null,
+        p_voter_other: (choice && choice.voterOtherName) || null,
       });
       if (error) throw new Error(error.message || 'Your vote could not be recorded.');
-      if (divisionId) WamDb.setVoterDivision(divisionId);
       votesByRef[ref] = normalizeVotes(data);
     },
 
@@ -704,6 +726,17 @@
       if (!client) throw new Error(connectionError || 'Database not initialized.');
       const { error } = await client.from('divisions').update({ active: false }).eq('id', id);
       if (error) throw error;
+    },
+
+    /** One row per guess, including who cast it. Admin-only, by design. */
+    async getVoteExport() {
+      if (!client) return [];
+      const { data, error } = await client.rpc('get_vote_export');
+      if (error) {
+        logErr('getVoteExport', error);
+        throw new Error(error.message || 'The guess data could not be loaded.');
+      }
+      return data || [];
     },
 
     async getWriteInVotes() {
