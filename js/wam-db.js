@@ -466,6 +466,14 @@
         return;
       }
 
+      // Settings first so the open/closed switches are available even if the
+      // public submissions feed fails to load.
+      try {
+        await WamDb.syncSettings();
+      } catch (e) {
+        logErr('syncAll/settings', e);
+      }
+
       try {
         const { data, error } = await client
           .from('submissions')
@@ -479,13 +487,7 @@
         throw e;
       }
 
-      // Settings and the mystery views are non-fatal: a failure here should not
-      // blank the archive that already loaded.
-      try {
-        await WamDb.syncSettings();
-      } catch (e) {
-        logErr('syncAll/settings', e);
-      }
+      // Mystery views are non-fatal: a failure here should not blank the archive.
       try {
         await WamDb.syncMystery();
       } catch (e) {
@@ -574,6 +576,12 @@
 
     async addSubmission(sub) {
       if (!client) throw new Error(connectionError || 'Database not initialized.');
+      // Re-read the switch so a stale in-memory "closed" flag cannot block a live window.
+      try {
+        await WamDb.syncSettings();
+      } catch (e) {
+        logErr('addSubmission/syncSettings', e);
+      }
       if (!WamDb.submissionsOpen()) {
         throw new Error('Submissions are closed right now. Watch for the next round to open.');
       }
@@ -608,11 +616,24 @@
         doc,
       };
 
-      const { data, error } = await client.from('submissions').insert(insertPayload).select('*').single();
+      // Do not chain .select() here. Pending rows (especially Mystery Miles) are not
+      // publicly readable under RLS, so asking PostgREST to return the new row fails
+      // with 42501 even when the insert itself succeeded — which used to surface as
+      // a false "submissions are closed" error while the admin switch was On.
+      const { error } = await client.from('submissions').insert(insertPayload);
       if (error) {
-        // RLS rejects inserts while the submission window is closed.
         if (error.code === '42501') {
-          throw new Error('Submissions are closed right now. Watch for the next round to open.');
+          try {
+            await WamDb.syncSettings();
+          } catch (e) {
+            logErr('addSubmission/recheckSettings', e);
+          }
+          if (!WamDb.submissionsOpen()) {
+            throw new Error('Submissions are closed right now. Watch for the next round to open.');
+          }
+          throw new Error(
+            'Your story could not be saved. Please try again, or contact the campaign organizers if it keeps failing.'
+          );
         }
         // The one-mystery-per-quarter trigger raises an already-friendly message.
         if (error.code === 'P0001' && error.message) {
@@ -620,8 +641,15 @@
         }
         throw error;
       }
-      const mapped = mapRow(data);
-      submissions.unshift(mapped);
+
+      // Pending rows are admin-only, so keep a local stand-in for the thank-you path
+      // rather than pretending the public feed can see them.
+      const mapped = {
+        ...doc,
+        id: null,
+        submittedAt: new Date().toISOString(),
+        status: 'pending',
+      };
 
       void WamDb.syncMystery()
         .then(function () {
